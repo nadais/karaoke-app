@@ -2,9 +2,7 @@
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
 name: Build and deploy ASP.Net Core app to Azure Web App - karaoke-wedding
-defaults:
-  run:
-    working-directory: api
+
 on:
   push:
     branches:
@@ -55,5 +53,5 @@ jobs:
         with:
           app-name: 'karaoke-wedding'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_724F98B9ADB8402F8ADA1477C97BE031 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_E704D959F7FF4C1BA9989A6D8BF9EF8B }}
           package: .

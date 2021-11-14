@@ -48,7 +48,7 @@ function App() {
     }
     function fetchSongsRemotely() {
         setLoading(true);
-        fetch('https://karaoke-wedding.azurewebsites.net/songs')
+        fetch('https://karaoke-birthday-admin.herokuapp.com/songs')
             .then(result => {
                 var test = result.json();
                 return test;

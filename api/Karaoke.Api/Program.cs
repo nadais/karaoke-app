@@ -6,9 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost
-.UseKestrel()
-.UseUrls("http://0.0.0.0:" + Environment.GetEnvironmentVariable("PORT"));
 
 // Add services to the container.
 

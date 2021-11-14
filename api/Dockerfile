@@ -1,5 +1,4 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
-ENV ASPNETCORE_Environment=Production
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
@@ -17,4 +16,4 @@ FROM base AS final
 ENV ASPNETCORE_Environment=Production
 WORKDIR /app
 COPY --from=publish /app/publish .
-CMD ["dotnet", "Karaoke.Api.dll"]
+CMD ASPNETCORE_URLS=http://*:$PORT dotnet Karaoke.Api.dll

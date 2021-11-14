@@ -13,6 +13,7 @@ FROM build AS publish
 RUN dotnet publish "Karaoke.Api.csproj" -c Release -o /app/publish
 
 FROM base AS final
+ENV ASPNETCORE_Environment=Production
 WORKDIR /app
 COPY --from=publish /app/publish .
-CMD ["dotnet", "Karaoke.Api.dll"]
+CMD ASPNETCORE_URLS=http://*:$PORT dotnet Karaoke.Api.dll

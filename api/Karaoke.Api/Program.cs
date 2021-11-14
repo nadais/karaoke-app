@@ -1,9 +1,9 @@
 using System;
 using Karaoke_catalog_server;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,10 +16,18 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>  
 {  
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Sample.FileUpload.Api", Version = "v1" });  
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Karaoke admin", Version = "v1" });  
     c.OperationFilter<SwaggerFileOperationFilter>();  
-}); 
-
+});
+var redisUrl = Environment.GetEnvironmentVariable("REDIS_URL");
+if(redisUrl != null)
+{ 
+    builder.Services.AddStackExchangeRedisCache(options => 
+    { 
+        var tokens = redisUrl.Split(':', '@');
+        options.ConfigurationOptions = ConfigurationOptions.Parse($"{tokens[3]}:{tokens[4]},password={tokens[2]}"); 
+    });
+}
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

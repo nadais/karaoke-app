@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -6,7 +7,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace Karaoke_catalog_server.Controllers;
 
@@ -14,25 +15,28 @@ namespace Karaoke_catalog_server.Controllers;
 [Route("[controller]")]
 public class SongsController : ControllerBase
 {
-    private readonly IMemoryCache _cache;
+    private readonly IDistributedCache _redisCache;
     private const string CacheEntryName = "songs";
 
-    public SongsController(IMemoryCache memoryCache)
+    public SongsController(IDistributedCache redisCache)
     {
-        _cache = memoryCache;
+        _redisCache = redisCache;
     }
     public record Song(string Artist, string Name);
     
     [HttpGet(Name = "GetSongs")]
     public async Task<IEnumerable<Song>> GetSongs()
     {
-        if (!_cache.TryGetValue(CacheEntryName, out var content) || content == null)
+        try
+        {
+            var content = await _redisCache.GetStringAsync(CacheEntryName);
+            var songs = JsonSerializer.Deserialize<List<Song>>(content);
+            return songs;
+        }
+        catch (Exception)
         {
             return new List<Song>();
         }
-
-        var songs = JsonSerializer.Deserialize<List<Song>>((string) content);
-        return songs;
     }    
     [HttpPost(Name = "UploadList")]
     public async Task<string> Post([FromForm] IFormFile file)
@@ -63,7 +67,7 @@ public class SongsController : ControllerBase
         var filteredContent = content.Where(x => int.TryParse(x[0], out _))
             .Select(x => new Song(x[2], x[1])).ToList();
         var cacheContent = JsonSerializer.Serialize(filteredContent);
-        _cache.Set(CacheEntryName, cacheContent);
+        await _redisCache.SetStringAsync(CacheEntryName, cacheContent);
         return cacheContent;
     }
 }

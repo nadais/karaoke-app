@@ -1,24 +1,20 @@
 {
   "files": {
-    "main.js": "/karaoke-app/static/js/main.3522e1ee.chunk.js",
-    "main.js.map": "/karaoke-app/static/js/main.3522e1ee.chunk.js.map",
-    "runtime-main.js": "/karaoke-app/static/js/runtime-main.f9eea051.js",
-    "runtime-main.js.map": "/karaoke-app/static/js/runtime-main.f9eea051.js.map",
+    "main.js": "/karaoke-app/static/js/main.342a8925.chunk.js",
+    "main.js.map": "/karaoke-app/static/js/main.342a8925.chunk.js.map",
+    "runtime-main.js": "/karaoke-app/static/js/runtime-main.7e76a75a.js",
+    "runtime-main.js.map": "/karaoke-app/static/js/runtime-main.7e76a75a.js.map",
     "static/css/2.588ad167.chunk.css": "/karaoke-app/static/css/2.588ad167.chunk.css",
     "static/js/2.571d0834.chunk.js": "/karaoke-app/static/js/2.571d0834.chunk.js",
     "static/js/2.571d0834.chunk.js.map": "/karaoke-app/static/js/2.571d0834.chunk.js.map",
-    "static/js/3.c0f36084.chunk.js": "/karaoke-app/static/js/3.c0f36084.chunk.js",
-    "static/js/3.c0f36084.chunk.js.map": "/karaoke-app/static/js/3.c0f36084.chunk.js.map",
     "index.html": "/karaoke-app/index.html",
-    "service-worker.js": "/karaoke-app/service-worker.js",
-    "service-worker.js.map": "/karaoke-app/service-worker.js.map",
     "static/css/2.588ad167.chunk.css.map": "/karaoke-app/static/css/2.588ad167.chunk.css.map",
     "static/js/2.571d0834.chunk.js.LICENSE.txt": "/karaoke-app/static/js/2.571d0834.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.f9eea051.js",
+    "static/js/runtime-main.7e76a75a.js",
     "static/css/2.588ad167.chunk.css",
     "static/js/2.571d0834.chunk.js",
-    "static/js/main.3522e1ee.chunk.js"
+    "static/js/main.342a8925.chunk.js"
   ]
 }

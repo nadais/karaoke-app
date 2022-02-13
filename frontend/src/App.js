@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { AgGridColumn, AgGridReact } from 'ag-grid-react';
-import { GridOptions } from 'ag-grid-community';
 
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 
 function App() {
-    const storageKey = "karaoke-storage";
-    const [rowData, setRowData] = useState(getLocalStorageSongs());
+    const [rowData, setRowData] = useState([]);
     const [gridApi, setGridApi] = useState(null);
     const [loading, setLoading] = useState(false);
     const [gridColumnApi, setGridColumnApi] = useState(null);
@@ -25,20 +23,8 @@ function App() {
         gridApi.setQuickFilter(e.target.value)
     }
     useEffect(() => {
-        var songs = getLocalStorageSongs();
-        if (songs.length == 0) {
-            fetchSongsRemotely();
-            return;
-        }
-        setRowData(songs);
+        fetchSongsRemotely();
     }, []);
-    function getLocalStorageSongs() {
-        var songs = window.localStorage.getItem(storageKey);
-        if (songs == null) {
-            return [];
-        }
-        return JSON.parse(songs);
-    }
     function getLoading() {
         if (loading) {
             return <div class="spinner-border" role="status">
@@ -55,7 +41,6 @@ function App() {
             })
             .then(rows => {
                 setLoading(false);
-                window.localStorage.setItem(storageKey, JSON.stringify(rows));
                 setRowData(rows);
             });
     }

@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -65,7 +60,7 @@ public class SongsController : ControllerBase
         }
 
         var filteredContent = content.Where(x => int.TryParse(x[0], out _))
-            .Select(x => new Song(x[2], x[1])).ToList();
+            .Select(x => new Song(x[2].Trim(), x[1].Trim())).ToList();
         var cacheContent = JsonSerializer.Serialize(filteredContent);
         await _redisCache.SetStringAsync(CacheEntryName, cacheContent);
         return cacheContent;

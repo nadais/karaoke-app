@@ -65,6 +65,7 @@ function App() {
                         filter: true,
                     }}
                     onGridReady={onGridReady}>
+                    <AgGridColumn field="number" sortable={true} filter={true} />
                     <AgGridColumn field="name" sortable={true} filter={true} />
                     <AgGridColumn field="artist" sortable={true} filter={true} />
                 </AgGridReact>

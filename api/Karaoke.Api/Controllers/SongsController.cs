@@ -17,7 +17,7 @@ public class SongsController : ControllerBase
     {
         _redisCache = redisCache;
     }
-    public record Song(string Artist, string Name);
+    public record Song(string Artist, string Name, int Number);
     
     [HttpGet(Name = "GetSongs")]
     public async Task<IEnumerable<Song>> GetSongs()
@@ -60,7 +60,7 @@ public class SongsController : ControllerBase
         }
 
         var filteredContent = content.Where(x => int.TryParse(x[0], out _))
-            .Select(x => new Song(x[2].Trim(), x[1].Trim())).ToList();
+            .Select(x => new Song(x[2].Trim(), x[1].Trim(), int.Parse(x[0]))).ToList();
         var cacheContent = JsonSerializer.Serialize(filteredContent);
         await _redisCache.SetStringAsync(CacheEntryName, cacheContent);
         return cacheContent;

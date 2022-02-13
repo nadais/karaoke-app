@@ -41,4 +41,7 @@ app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();
 
-app.Run();
+app.Run(context => {
+            context.Response.Redirect("swagger/ui");
+            return Task.CompletedTask;
+        });

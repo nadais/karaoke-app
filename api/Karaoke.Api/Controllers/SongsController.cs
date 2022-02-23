@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -16,30 +15,43 @@ namespace Karaoke_catalog_server.Controllers;
 public class SongsController : ControllerBase
 {
     private readonly IDistributedCache _redisCache;
-    private const string CacheEntryName = "songs";
+    private static Dictionary<string, string> _localCache = new();
+    private const string CacheEntryName = "catalog";
 
     public SongsController(IDistributedCache redisCache)
     {
         _redisCache = redisCache;
     }
     public record Song(string Artist, string Name, int Number);
-    
-    [HttpGet(Name = "GetSongs")]
-    public async Task<IEnumerable<Song>> GetSongs()
+
+    public record Catalog(Dictionary<string, ICollection<Song>> SongGroups);
+
+    private async Task<Catalog> GetSongsFromCache()
     {
-        try
+        // Line here for debugging purposes locally
+        // var content = _localCache.ContainsKey(CacheEntryName) ? _localCache[CacheEntryName] : null;
+        var content = await _redisCache.GetStringAsync(CacheEntryName);
+        if (content == null)
         {
-            var content = await _redisCache.GetStringAsync(CacheEntryName);
-            var songs = JsonSerializer.Deserialize<List<Song>>(content);
-            return songs;
+            return new Catalog(new Dictionary<string, ICollection<Song>>());
         }
-        catch (Exception)
-        {
-            return new List<Song>();
-        }
-    }    
-    [HttpPost(Name = "UploadList")]
-    public async Task<string> Post([FromForm] IFormFile file)
+        var songs = JsonSerializer.Deserialize<Catalog>(content);
+        return songs ?? new Catalog(new Dictionary<string, ICollection<Song>>());
+    }
+    [HttpGet(Name = "GetSongs")]
+    public async Task<Catalog> GetSongs()
+    {
+        return await GetSongsFromCache();
+    }
+
+    [HttpPost("clear")]
+    public async Task ClearCache()
+    {
+        await _redisCache.RemoveAsync(CacheEntryName);
+    }
+
+    [HttpPost("{tagName}", Name = "UploadList")]
+    public async Task<string> Post(string tagName, [FromForm] IFormFile file)
     {
         if (!file.FileName.EndsWith("docx"))
         {
@@ -64,9 +76,19 @@ public class SongsController : ControllerBase
             }
         }
 
+        var storedCatalog = await GetSongsFromCache();
+        if (storedCatalog.SongGroups.ContainsKey(tagName))
+        {
+            storedCatalog.SongGroups.Remove(tagName);
+        }
         var filteredContent = content.Where(x => int.TryParse(x[0], out _))
             .Select(x => new Song(x[2].Trim(), x[1].Trim(), int.Parse(x[0]))).ToList();
-        var cacheContent = JsonSerializer.Serialize(filteredContent);
+        storedCatalog.SongGroups.Add(tagName, filteredContent);
+
+        var cacheContent = JsonSerializer.Serialize(storedCatalog);
+
+        // Line here for debugging purposes locally
+        // _localCache[CacheEntryName] = cacheContent;
         await _redisCache.SetStringAsync(CacheEntryName, cacheContent);
         return cacheContent;
     }

@@ -8,6 +8,8 @@ function App() {
     const [rowData, setRowData] = useState([]);
     const [gridApi, setGridApi] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [catalog, setCatalog] = useState({});
+    const [currentCatalog, setCurrentCatalog] = useState();
     const [gridColumnApi, setGridColumnApi] = useState(null);
     const searchDivStyle = { backgroundColor: "#dedede", padding: 10 }
     const searchStyle = {
@@ -39,15 +41,31 @@ function App() {
                 var test = result.json();
                 return test;
             })
-            .then(rows => {
+            .then(response => {
                 setLoading(false);
-                setRowData(rows);
+                setCatalog(response.songGroups);
+                updateCatalog(Object.keys(catalog)[0]);
             });
+    }
+
+    function updateCatalog(catalogName)
+    {
+        setCurrentCatalog(catalogName);
+        setRowData(catalog[catalogName]);
+    }
+    function onCatalogChanged(event)
+    {
+        updateCatalog(event.target.value);
     }
 
     return (
         <div>
             <h1 align="center">Karaoke night</h1>
+            <label for="catalog">Select catalog</label>
+            <select name='catalog' onChange={onCatalogChanged} value={currentCatalog}>
+                {Object.keys(catalog).map(key =>
+                    (<option value={key}>{key}</option>))}
+            </select>
             <button onClick={fetchSongsRemotely}>
                 Reload Songs
             </button>

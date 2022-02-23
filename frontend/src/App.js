@@ -46,8 +46,7 @@ function App() {
             });
     }
 
-    function onCatalogChanged(event)
-    {
+    function onCatalogChanged(event) {
         let catalogName = event.target.value;
         setRowData(catalog[catalogName] == null ? [] : catalog[catalogName]);
     }
@@ -55,16 +54,21 @@ function App() {
     return (
         <div>
             <h1 align="center">Karaoke night</h1>
-            <label for="catalog">Select catalog</label>
-            <select name='catalog' onChange={onCatalogChanged}>
-                <option value="">None</option>
-                {Object.keys(catalog).map(key =>
-                    (<option value={key}>{key}</option>))}
-            </select>
-            <button onClick={fetchSongsRemotely}>
-                Reload Songs
-            </button>
-            {getLoading()}
+            <div class="row">
+                <div class="col">
+                    <select class="form-select" name='catalog' onChange={onCatalogChanged}>
+                        <option value=""> Select catalog</option>
+                        {Object.keys(catalog).map(key =>
+                            (<option value={key}>{key}</option>))}
+                    </select>
+                </div>
+                <div class="col">
+                    <button onClick={fetchSongsRemotely} class="btn btn-primary">
+                        Reload Songs
+                    </button>
+                    {getLoading()}
+                </div>
+            </div>
             <div style={searchDivStyle}>
                 <input type="search" style={searchStyle} onChange={onFilterTextChange} placeholder="search songs..." />
             </div>

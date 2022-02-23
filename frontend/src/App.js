@@ -33,6 +33,13 @@ function App() {
             </div>
         }
     }
+    function getSearchBar() {
+        if (rowData.length > 0) {
+            return <div style={searchDivStyle}>
+                <input type="search" style={searchStyle} onChange={onFilterTextChange} placeholder="search songs..." />
+                </div>
+        }
+    }
     function fetchSongsRemotely() {
         setLoading(true);
         fetch('https://karaoke-juliane.herokuapp.com/songs')
@@ -69,9 +76,8 @@ function App() {
                     {getLoading()}
                 </div>
             </div>
-            <div style={searchDivStyle}>
-                <input type="search" style={searchStyle} onChange={onFilterTextChange} placeholder="search songs..." />
-            </div>
+            {getSearchBar()}
+
 
             <div className="ag-theme-alpine" style={{ height: 600 }}>
                 <AgGridReact rowData={rowData}

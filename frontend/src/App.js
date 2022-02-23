@@ -9,7 +9,6 @@ function App() {
     const [gridApi, setGridApi] = useState(null);
     const [loading, setLoading] = useState(false);
     const [catalog, setCatalog] = useState({});
-    const [currentCatalog, setCurrentCatalog] = useState();
     const [gridColumnApi, setGridColumnApi] = useState(null);
     const searchDivStyle = { backgroundColor: "#dedede", padding: 10 }
     const searchStyle = {
@@ -44,25 +43,21 @@ function App() {
             .then(response => {
                 setLoading(false);
                 setCatalog(response.songGroups);
-                updateCatalog(Object.keys(catalog)[0]);
             });
     }
 
-    function updateCatalog(catalogName)
-    {
-        setCurrentCatalog(catalogName);
-        setRowData(catalog[catalogName]);
-    }
     function onCatalogChanged(event)
     {
-        updateCatalog(event.target.value);
+        let catalogName = event.target.value;
+        setRowData(catalog[catalogName] == null ? [] : catalog[catalogName]);
     }
 
     return (
         <div>
             <h1 align="center">Karaoke night</h1>
             <label for="catalog">Select catalog</label>
-            <select name='catalog' onChange={onCatalogChanged} value={currentCatalog}>
+            <select name='catalog' onChange={onCatalogChanged}>
+                <option value="">None</option>
                 {Object.keys(catalog).map(key =>
                     (<option value={key}>{key}</option>))}
             </select>

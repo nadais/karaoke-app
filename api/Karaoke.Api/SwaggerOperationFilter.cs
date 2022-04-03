@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 

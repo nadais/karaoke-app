@@ -9,6 +9,7 @@ function App() {
     const [gridApi, setGridApi] = useState(null);
     const [loading, setLoading] = useState(false);
     const [catalog, setCatalog] = useState({});
+    const [allSongs, setAllSongs] = useState([]);
     const [gridColumnApi, setGridColumnApi] = useState(null);
     const searchDivStyle = { backgroundColor: "#dedede", padding: 10 }
     const searchStyle = {
@@ -49,13 +50,20 @@ function App() {
             })
             .then(response => {
                 setLoading(false);
+                let fullCatalog = [];
+                Object.keys(response.songGroups).forEach(key =>
+                {                     
+                    fullCatalog = fullCatalog.concat(response.songGroups[key]);   
+                });
+                setAllSongs(fullCatalog);
                 setCatalog(response.songGroups);
+                setRowData(fullCatalog);
             });
     }
 
     function onCatalogChanged(event) {
         let catalogName = event.target.value;
-        setRowData(catalog[catalogName] == null ? [] : catalog[catalogName]);
+        setRowData(catalog[catalogName] == null ? allSongs : catalog[catalogName]);
     }
 
     return (

@@ -1,10 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -18,11 +14,13 @@ public class SongsController : ControllerBase
     private static Dictionary<string, string> _localCache = new();
     private const string CacheEntryName = "catalog";
 
-    public SongsController(IDistributedCache redisCache)
+    public SongsController(
+        IDistributedCache redisCache
+        )
     {
         _redisCache = redisCache;
     }
-    public record Song(string Artist, string Name, int Number);
+    public record Song(string Artist, string Name, int Number, string? Category);
 
     public record Catalog(Dictionary<string, ICollection<Song>> SongGroups);
 
@@ -57,22 +55,33 @@ public class SongsController : ControllerBase
         {
             return string.Empty;
         }
+
+        tagName = Uri.UnescapeDataString(tagName);
         
         using WordprocessingDocument doc = WordprocessingDocument.Open(file.OpenReadStream(), false);
         // Find the first table in the document.   
         var tables = doc.MainDocumentPart.Document.Body.Elements<Table>();  
   
         // To get all rows from table
-        var content = new List<List<string>>();
+        var content = new List<Song>();
         foreach (var table in tables)
         {
-            IEnumerable<TableRow> rows = table.Elements<TableRow>();  
-            // To read data from rows and to add records to the temporary table  
-            foreach (TableRow row in rows)
+            var rows = table.Elements<TableRow>();  
+            // To read data from rows and to add records to the temporary table
+            var isFirstRow = true;
+            var category = "";
+            foreach (var row in rows)
             {
                 var currentRow = new List<string>();
                 currentRow.AddRange(row.Descendants<TableCell>().Select(cell => cell.InnerText));
-                content.Add(currentRow);
+                if (isFirstRow)
+                {
+                    category = currentRow[1];
+                    isFirstRow = false;
+                    continue;
+                }
+                
+                content.Add(new Song(currentRow[2].Trim(), currentRow[1].Trim(), int.Parse(currentRow[0]), category is "Title" or "Titre" ? null : category));
             }
         }
 
@@ -81,9 +90,7 @@ public class SongsController : ControllerBase
         {
             storedCatalog.SongGroups.Remove(tagName);
         }
-        var filteredContent = content.Where(x => int.TryParse(x[0], out _))
-            .Select(x => new Song(x[2].Trim(), x[1].Trim(), int.Parse(x[0]))).ToList();
-        storedCatalog.SongGroups.Add(tagName, filteredContent);
+        storedCatalog.SongGroups.Add(tagName, content);
 
         var cacheContent = JsonSerializer.Serialize(storedCatalog);
 

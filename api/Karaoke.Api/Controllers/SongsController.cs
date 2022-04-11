@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using OneOf;
 
 namespace Karaoke_catalog_server.Controllers;
 
@@ -21,6 +22,8 @@ public class SongsController : ControllerBase
         _redisCache = redisCache;
     }
     public record Song(string Artist, string Name, int Number, string? Category);
+
+    public record RequestError(string? Message = null, object? Content = null);
 
     public record Catalog(Dictionary<string, ICollection<Song>> SongGroups);
 
@@ -48,25 +51,54 @@ public class SongsController : ControllerBase
         await _redisCache.RemoveAsync(CacheEntryName);
     }
 
+    [HttpPost("validate")]
+    public IActionResult Validate([FromForm] IFormFile file)
+    {
+        var result = ParseDocumentLines(file);
+        return result.Match<IActionResult>(Ok, UnprocessableEntity );
+    }
+
     [HttpPost("{tagName}", Name = "UploadList")]
-    public async Task<string> Post(string tagName, [FromForm] IFormFile file)
+    public async Task<IActionResult> Post(string tagName, [FromForm] IFormFile file)
+    {
+        tagName = Uri.UnescapeDataString(tagName);
+        var result = ParseDocumentLines(file);
+
+        return await result.Match<Task<IActionResult>>(async content =>
+        {
+            var storedCatalog = await GetSongsFromCache();
+            if (storedCatalog.SongGroups.ContainsKey(tagName))
+            {
+                storedCatalog.SongGroups.Remove(tagName);
+            }
+            storedCatalog.SongGroups.Add(tagName, content);
+
+            var cacheContent = JsonSerializer.Serialize(storedCatalog);
+
+            // Line here for debugging purposes locally
+            _localCache[CacheEntryName] = cacheContent;
+            // await _redisCache.SetStringAsync(CacheEntryName, cacheContent);
+            return Ok(cacheContent);
+        },async request => await Task.FromResult(BadRequest(request)));
+    }
+
+    private static OneOf<List<Song>, RequestError> ParseDocumentLines(IFormFile file)
     {
         if (!file.FileName.EndsWith("docx"))
         {
-            return string.Empty;
+            return new RequestError($"Document extension should be docx - received file with name {file.FileName}");
         }
 
-        tagName = Uri.UnescapeDataString(tagName);
-        
         using WordprocessingDocument doc = WordprocessingDocument.Open(file.OpenReadStream(), false);
         // Find the first table in the document.   
-        var tables = doc.MainDocumentPart.Document.Body.Elements<Table>();  
-  
+        var tables = doc.MainDocumentPart.Document.Body.Elements<Table>();
+
         // To get all rows from table
         var content = new List<Song>();
+        var faultyLines = new List<string>();
         foreach (var table in tables)
         {
-            var rows = table.Elements<TableRow>();  
+            var rows = table.Elements<TableRow>();
             // To read data from rows and to add records to the temporary table
             var isFirstRow = true;
             var category = "";
@@ -80,23 +112,18 @@ public class SongsController : ControllerBase
                     isFirstRow = false;
                     continue;
                 }
-                
-                content.Add(new Song(currentRow[2].Trim(), currentRow[1].Trim(), int.Parse(currentRow[0]), category is "Title" or "Titre" ? null : category));
+
+                try
+                {
+                    content.Add(new Song(currentRow[2].Trim(), currentRow[1].Trim(), int.Parse(currentRow[0]),
+                        category is "Title" or "Titre" ? "General" : category));
+                }
+                catch (Exception)
+                {
+                    faultyLines.Add(string.Join(',', currentRow));
+                }
             }
         }
-
-        var storedCatalog = await GetSongsFromCache();
-        if (storedCatalog.SongGroups.ContainsKey(tagName))
-        {
-            storedCatalog.SongGroups.Remove(tagName);
-        }
-        storedCatalog.SongGroups.Add(tagName, content);
-
-        var cacheContent = JsonSerializer.Serialize(storedCatalog);
-
-        // Line here for debugging purposes locally
-        // _localCache[CacheEntryName] = cacheContent;
-        await _redisCache.SetStringAsync(CacheEntryName, cacheContent);
-        return cacheContent;
+        return faultyLines.Any() ? new RequestError("The lines in content were faulty", faultyLines) : content;
     }
 }

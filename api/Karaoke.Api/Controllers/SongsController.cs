@@ -76,8 +76,8 @@ public class SongsController : ControllerBase
             var cacheContent = JsonSerializer.Serialize(storedCatalog);
 
             // Line here for debugging purposes locally
-            _localCache[CacheEntryName] = cacheContent;
-            // await _redisCache.SetStringAsync(CacheEntryName, cacheContent);
+            // _localCache[CacheEntryName] = cacheContent;
+            await _redisCache.SetStringAsync(CacheEntryName, cacheContent);
             return Ok(cacheContent);
         },async request => await Task.FromResult(BadRequest(request)));
     }

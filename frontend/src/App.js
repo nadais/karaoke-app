@@ -8,6 +8,10 @@ function App() {
     const [rowData, setRowData] = useState([]);
     const [gridApi, setGridApi] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [catalog, setCatalog] = useState({});
+    const [allSongs, setAllSongs] = useState([]);
+    const [category, setCategory] = useState(undefined);
+    const [catalogName, setCatalogName] = useState(undefined);
     const [gridColumnApi, setGridColumnApi] = useState(null);
     const searchDivStyle = { backgroundColor: "#dedede", padding: 10 }
     const searchStyle = {
@@ -27,8 +31,24 @@ function App() {
     }, []);
     function getLoading() {
         if (loading) {
-            return <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
+            return <div className="spinner-border" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </div>
+        }
+    }
+    function getCategories() {
+        return <div className="col">
+            <select className="form-select" name='catalog' onChange={onCategoryChanged}>
+                <option value=""> Select category</option>
+                {allSongs.map(x =>x.category).filter((v, i, a) => a.indexOf(v) === i && v != null).map(key =>
+                    (<option value={key} key={key}>{key}</option>))}
+            </select>
+        </div>
+    }
+    function getSearchBar() {
+        if (rowData.length > 0) {
+            return <div style={searchDivStyle}>
+                <input type="search" style={searchStyle} onChange={onFilterTextChange} placeholder="search songs..." />
             </div>
         }
     }
@@ -39,35 +59,73 @@ function App() {
                 var test = result.json();
                 return test;
             })
-            .then(rows => {
+            .then(response => {
                 setLoading(false);
-                setRowData(rows);
+                let fullCatalog = [];
+                Object.keys(response.songGroups).forEach(key => {
+                    fullCatalog = fullCatalog.concat(response.songGroups[key]);
+                });
+                setAllSongs(fullCatalog);
+                setCatalog(response.songGroups);
+                setRowData(fullCatalog);
             });
+    }
+
+    function getRowData(newCatalogName, newCategory)
+    {
+        let result = newCatalogName == null || newCatalogName === '' ? allSongs : catalog[newCatalogName];
+        if(newCategory != null && newCategory !== '')
+        {
+            result = result.filter(x =>x.category === newCategory);
+        }
+        return result;
+    }
+
+    function onCategoryChanged(event) {
+        let newCategory = event.target.value === '' ? undefined : event.target.value;
+        setCategory(newCategory);
+        setRowData(getRowData(catalogName, newCategory));
+    }
+
+    function onCatalogChanged(event) {
+        let newCatalog = event.target.value === '' ? undefined : event.target.value;
+        setCatalogName(newCatalog);
+        setRowData(getRowData(newCatalog, category));
     }
 
     return (
         <div>
             <h1 align="center">Karaoke night</h1>
-            <button onClick={fetchSongsRemotely}>
-                Reload Songs
-            </button>
-            {getLoading()}
-            <div style={searchDivStyle}>
-                <input type="search" style={searchStyle} onChange={onFilterTextChange} placeholder="search songs..." />
+            <div className="row">
+                <div className="col">
+                    <select className="form-select" name='catalog' onChange={onCatalogChanged}>
+                        <option value=""> Select catalog</option>
+                        {Object.keys(catalog).map(key =>
+                            (<option value={key} key={key}>{key}</option>))}
+                    </select>
+                </div>
+                {getCategories()}
+                <div className="col">
+                    <button onClick={fetchSongsRemotely} className="btn btn-primary">
+                        Reload Songs
+                    </button>
+                    {getLoading()}
+                </div>
             </div>
+            {getSearchBar()}
 
-            <div className="ag-theme-alpine" style={{ height: 600 }}>
+
+            <div className="ag-theme-alpine"  style={{ "height": 1000 }}>
                 <AgGridReact rowData={rowData}
                     defaultColDef={{
-                        flex: 1,
                         sortable: true,
                         resizable: true,
                         filter: true,
                     }}
                     onGridReady={onGridReady}>
-                    <AgGridColumn field="number" sortable={true} filter={true} />
-                    <AgGridColumn field="name" sortable={true} filter={true} />
-                    <AgGridColumn field="artist" sortable={true} filter={true} />
+                    <AgGridColumn field="number" sortable={true} filter={true} flex={1}/>
+                    <AgGridColumn field="name" sortable={true} filter={true} flex={4}/>
+                    <AgGridColumn field="artist" sortable={true} filter={true} flex={2} sort={'asc'}/>
                 </AgGridReact>
             </div>
         </div>

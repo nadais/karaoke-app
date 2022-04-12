@@ -27,22 +27,22 @@ public class SongsController : ControllerBase
 
     public record Catalog(ICollection<Song> SongGroups);
 
-    private async Task<Catalog> GetSongsFromCache()
+    private async Task<Dictionary<int,Song>> GetSongsFromCache()
     {
         // Line here for debugging purposes locally
         // var content = _localCache.ContainsKey(CacheEntryName) ? _localCache[CacheEntryName] : null;
         var content = await _redisCache.GetStringAsync(CacheEntryName);
         if (content == null)
         {
-            return new Catalog(new List<Song>());
+            return new Dictionary<int, Song>();
         }
-        var songs = JsonSerializer.Deserialize<Catalog>(content);
-        return songs ?? new Catalog(new List<Song>());
+        var songs = JsonSerializer.Deserialize<Dictionary<int,Song>>(content);
+        return songs ?? new Dictionary<int, Song>();
     }
     [HttpGet(Name = "GetSongs")]
     public async Task<Catalog> GetSongs()
     {
-        return await GetSongsFromCache();
+        return new Catalog((await GetSongsFromCache()).Values.ToList());
     }
 
     [HttpPost("clear")]
@@ -67,22 +67,20 @@ public class SongsController : ControllerBase
         return await result.Match<Task<IActionResult>>(async content =>
         {
             var storedCatalog = await GetSongsFromCache();
-            var catalogDictionary = storedCatalog.SongGroups
-                .Where(x => !x.Catalogs.Contains(tagName)).ToDictionary(x => x.Number, x => x);
             foreach (var (key, value) in content)
             {
-                if (catalogDictionary.ContainsKey(key))
+                if (storedCatalog.ContainsKey(key))
                 {
-                    if (!catalogDictionary[key].Catalogs.Contains(tagName))
+                    if (!storedCatalog[key].Catalogs.Contains(tagName))
                     {
-                        catalogDictionary[key].Catalogs.Add(tagName);
+                        storedCatalog[key].Catalogs.Add(tagName);
                     }
                     continue;
                 }
-                catalogDictionary.Add(key, value);
+                storedCatalog.Add(key, value);
             }
 
-            var cacheContent = JsonSerializer.Serialize(new Catalog(catalogDictionary.Values.ToList()));
+            var cacheContent = JsonSerializer.Serialize(storedCatalog);
 
             // Line here for debugging purposes locally
             // _localCache[CacheEntryName] = cacheContent;
@@ -98,7 +96,7 @@ public class SongsController : ControllerBase
             return new RequestError($"Document extension should be docx - received file with name {file.FileName}");
         }
 
-        using WordprocessingDocument doc = WordprocessingDocument.Open(file.OpenReadStream(), false);
+        using var doc = WordprocessingDocument.Open(file.OpenReadStream(), false);
         // Find the first table in the document.   
         var tables = doc.MainDocumentPart.Document.Body.Elements<Table>();
 
@@ -113,8 +111,7 @@ public class SongsController : ControllerBase
             var category = "";
             foreach (var row in rows)
             {
-                var currentRow = new List<string>();
-                currentRow.AddRange(row.Descendants<TableCell>().Select(cell => cell.InnerText));
+                var currentRow = row.Descendants<TableCell>().Select(cell => cell.InnerText).ToList();
                 if (isFirstRow)
                 {
                     category = currentRow[1];
@@ -126,13 +123,13 @@ public class SongsController : ControllerBase
                 {
                     var songNumber = int.Parse(currentRow[0]);
                     var categoryName = category is "Title" or "Titre" ? "General" : category;
-                    var song = new Song(currentRow[2].Trim(), currentRow[1].Trim(), int.Parse(currentRow[0]),
-                        new List<string> { categoryName }, new List<string> { catalogName });
                     if (content.ContainsKey(songNumber))
                     {
                         content[songNumber].Categories.Add(categoryName);
                         continue;
                     }
+                    var song = new Song(currentRow[2].Trim(), currentRow[1].Trim(), int.Parse(currentRow[0]),
+                        new List<string> { categoryName }, new List<string> { catalogName });
                     content.Add(songNumber, song);
                 }
                 catch (Exception)

@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.js": "/karaoke-app/static/js/main.9db0abfe.chunk.js",
-    "main.js.map": "/karaoke-app/static/js/main.9db0abfe.chunk.js.map",
+    "main.js": "/karaoke-app/static/js/main.c2ddd3d6.chunk.js",
+    "main.js.map": "/karaoke-app/static/js/main.c2ddd3d6.chunk.js.map",
     "runtime-main.js": "/karaoke-app/static/js/runtime-main.7e76a75a.js",
     "runtime-main.js.map": "/karaoke-app/static/js/runtime-main.7e76a75a.js.map",
     "static/css/2.588ad167.chunk.css": "/karaoke-app/static/css/2.588ad167.chunk.css",
@@ -15,6 +15,6 @@
     "static/js/runtime-main.7e76a75a.js",
     "static/css/2.588ad167.chunk.css",
     "static/js/2.6102b8b2.chunk.js",
-    "static/js/main.9db0abfe.chunk.js"
+    "static/js/main.c2ddd3d6.chunk.js"
   ]
 }

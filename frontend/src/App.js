@@ -13,7 +13,6 @@ function App() {
     const [categories, setCategories] = useState([]);
     const [category, setCategory] = useState(undefined);
     const [catalogName, setCatalogName] = useState(undefined);
-    const [gridColumnApi, setGridColumnApi] = useState(null);
     const searchDivStyle = { backgroundColor: "#dedede", padding: 10 }
     const searchStyle = {
         width: "100%", padding: "10px 20px", borderRadius: 20, outline: 0,
@@ -22,7 +21,6 @@ function App() {
 
     const onGridReady = (params) => {
         setGridApi(params.api);
-        setGridColumnApi(params.columnApi);
     };
     const onFilterTextChange = (e) => {
         gridApi.setQuickFilter(e.target.value)
@@ -125,8 +123,8 @@ function App() {
                     }}
                     onGridReady={onGridReady}>
                     <AgGridColumn field="number" sortable={true} filter={true} flex={1} minWidth={80}/>
-                    <AgGridColumn field="name" sortable={true} filter={true} flex={4}/>
-                    <AgGridColumn field="artist" sortable={true} filter={true} flex={2} sort={'asc'}/>
+                    <AgGridColumn field="name" sortable={true} filter={true} flex={4} minWidth={250}/>
+                    <AgGridColumn field="artist" sortable={true} filter={true} flex={2} sort={'asc'} minWidth={170}/>
                 </AgGridReact>
             </div>
         </div>

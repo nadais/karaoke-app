@@ -1,7 +1,4 @@
-using System;
 using Karaoke_catalog_server;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 

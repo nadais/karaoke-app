@@ -21,11 +21,11 @@ public class SongsController : ControllerBase
     {
         _redisCache = redisCache;
     }
-    public record Song(string Artist, string Name, int Number, string? Category);
+    public record Song(string Artist, string Name, int Number, List<string> Categories, List<string> Catalogs);
 
     public record RequestError(string? Message = null, object? Content = null);
 
-    public record Catalog(Dictionary<string, ICollection<Song>> SongGroups);
+    public record Catalog(ICollection<Song> SongGroups);
 
     private async Task<Catalog> GetSongsFromCache()
     {
@@ -34,10 +34,10 @@ public class SongsController : ControllerBase
         var content = await _redisCache.GetStringAsync(CacheEntryName);
         if (content == null)
         {
-            return new Catalog(new Dictionary<string, ICollection<Song>>());
+            return new Catalog(new List<Song>());
         }
         var songs = JsonSerializer.Deserialize<Catalog>(content);
-        return songs ?? new Catalog(new Dictionary<string, ICollection<Song>>());
+        return songs ?? new Catalog(new List<Song>());
     }
     [HttpGet(Name = "GetSongs")]
     public async Task<Catalog> GetSongs()
@@ -62,18 +62,27 @@ public class SongsController : ControllerBase
     public async Task<IActionResult> Post(string tagName, [FromForm] IFormFile file)
     {
         tagName = Uri.UnescapeDataString(tagName);
-        var result = ParseDocumentLines(file);
+        var result = ParseDocumentLines(file, tagName);
 
         return await result.Match<Task<IActionResult>>(async content =>
         {
             var storedCatalog = await GetSongsFromCache();
-            if (storedCatalog.SongGroups.ContainsKey(tagName))
+            var catalogDictionary = storedCatalog.SongGroups
+                .Where(x => !x.Catalogs.Contains(tagName)).ToDictionary(x => x.Number, x => x);
+            foreach (var (key, value) in content)
             {
-                storedCatalog.SongGroups.Remove(tagName);
+                if (catalogDictionary.ContainsKey(key))
+                {
+                    if (!catalogDictionary[key].Catalogs.Contains(tagName))
+                    {
+                        catalogDictionary[key].Catalogs.Add(tagName);
+                    }
+                    continue;
+                }
+                catalogDictionary.Add(key, value);
             }
-            storedCatalog.SongGroups.Add(tagName, content);
 
-            var cacheContent = JsonSerializer.Serialize(storedCatalog);
+            var cacheContent = JsonSerializer.Serialize(new Catalog(catalogDictionary.Values.ToList()));
 
             // Line here for debugging purposes locally
             // _localCache[CacheEntryName] = cacheContent;
@@ -82,7 +91,7 @@ public class SongsController : ControllerBase
         },async request => await Task.FromResult(BadRequest(request)));
     }
 
-    private static OneOf<List<Song>, RequestError> ParseDocumentLines(IFormFile file)
+    private static OneOf<Dictionary<int, Song>, RequestError> ParseDocumentLines(IFormFile file, string catalogName = "")
     {
         if (!file.FileName.EndsWith("docx"))
         {
@@ -94,7 +103,7 @@ public class SongsController : ControllerBase
         var tables = doc.MainDocumentPart.Document.Body.Elements<Table>();
 
         // To get all rows from table
-        var content = new List<Song>();
+        var content = new Dictionary<int, Song>();
         var faultyLines = new List<string>();
         foreach (var table in tables)
         {
@@ -115,8 +124,16 @@ public class SongsController : ControllerBase
 
                 try
                 {
-                    content.Add(new Song(currentRow[2].Trim(), currentRow[1].Trim(), int.Parse(currentRow[0]),
-                        category is "Title" or "Titre" ? "General" : category));
+                    var songNumber = int.Parse(currentRow[0]);
+                    var categoryName = category is "Title" or "Titre" ? "General" : category;
+                    var song = new Song(currentRow[2].Trim(), currentRow[1].Trim(), int.Parse(currentRow[0]),
+                        new List<string> { categoryName }, new List<string> { catalogName });
+                    if (content.ContainsKey(songNumber))
+                    {
+                        content[songNumber].Categories.Add(categoryName);
+                        continue;
+                    }
+                    content.Add(songNumber, song);
                 }
                 catch (Exception)
                 {

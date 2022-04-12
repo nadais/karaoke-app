@@ -8,8 +8,9 @@ function App() {
     const [rowData, setRowData] = useState([]);
     const [gridApi, setGridApi] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [catalog, setCatalog] = useState({});
-    const [allSongs, setAllSongs] = useState([]);
+    const [songs, setSongs] = useState([]);
+    const [catalogs, setCatalogs] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [category, setCategory] = useState(undefined);
     const [catalogName, setCatalogName] = useState(undefined);
     const [gridColumnApi, setGridColumnApi] = useState(null);
@@ -40,7 +41,7 @@ function App() {
         return <div className="col">
             <select className="form-select" name='catalog' onChange={onCategoryChanged}>
                 <option value=""> Select category</option>
-                {allSongs.map(x =>x.category).filter((v, i, a) => a.indexOf(v) === i && v != null).map(key =>
+                {categories.map(key =>
                     (<option value={key} key={key}>{key}</option>))}
             </select>
         </div>
@@ -61,22 +62,22 @@ function App() {
             })
             .then(response => {
                 setLoading(false);
-                let fullCatalog = [];
-                Object.keys(response.songGroups).forEach(key => {
-                    fullCatalog = fullCatalog.concat(response.songGroups[key]);
-                });
-                setAllSongs(fullCatalog);
-                setCatalog(response.songGroups);
+                let fullCatalog = response.songGroups;
+                let catalogs = fullCatalog.flatMap(x => x.catalogs).filter((v, i, a) => a.indexOf(v) === i && v != null);
+                let categories = fullCatalog.flatMap(x => x.categories).filter((v, i, a) => a.indexOf(v) === i && v != null);
+                setCatalogs(catalogs);
+                setCategories(categories);
+                setSongs(response.songGroups);
                 setRowData(fullCatalog);
             });
     }
 
     function getRowData(newCatalogName, newCategory)
     {
-        let result = newCatalogName == null || newCatalogName === '' ? allSongs : catalog[newCatalogName];
+        let result = newCatalogName == null || newCatalogName === '' ? songs : songs.filter(x => x.catalogs.includes(newCatalogName));
         if(newCategory != null && newCategory !== '')
         {
-            result = result.filter(x =>x.category === newCategory);
+            result = result.filter(x =>x.categories.includes(newCategory));
         }
         return result;
     }
@@ -100,7 +101,7 @@ function App() {
                 <div className="col">
                     <select className="form-select" name='catalog' onChange={onCatalogChanged}>
                         <option value=""> Select catalog</option>
-                        {Object.keys(catalog).map(key =>
+                        {catalogs.map(key =>
                             (<option value={key} key={key}>{key}</option>))}
                     </select>
                 </div>
@@ -123,7 +124,7 @@ function App() {
                         filter: true,
                     }}
                     onGridReady={onGridReady}>
-                    <AgGridColumn field="number" sortable={true} filter={true} flex={1}/>
+                    <AgGridColumn field="number" sortable={true} filter={true} flex={1} minWidth={80}/>
                     <AgGridColumn field="name" sortable={true} filter={true} flex={4}/>
                     <AgGridColumn field="artist" sortable={true} filter={true} flex={2} sort={'asc'}/>
                 </AgGridReact>

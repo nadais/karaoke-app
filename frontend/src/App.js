@@ -120,6 +120,8 @@ function App() {
                         sortable: true,
                         resizable: true,
                         filter: true,
+                        suppressMovable: true,
+                        suppressColumnsToolPanel: false
                     }}
                     onGridReady={onGridReady}>
                     <AgGridColumn field="number" sortable={true} filter={true} flex={1} minWidth={80}/>

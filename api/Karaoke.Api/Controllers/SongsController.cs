@@ -1,100 +1,135 @@
-using System.Text.Json;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Karaoke.Api.Settings;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using OneOf;
 
-namespace Karaoke_catalog_server.Controllers;
+namespace Karaoke.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 public class SongsController : ControllerBase
 {
-    private readonly IDistributedCache _redisCache;
-    private static Dictionary<string, string> _localCache = new();
-    private const string CacheEntryName = "catalog";
-
+    private readonly SongsCollectionSettings _settings;
+    private readonly IMongoCollection<Song> _songsCollection;
     public SongsController(
-        IDistributedCache redisCache
-        )
+        MongoDbService mongoDbService,
+        IOptions<SongsCollectionSettings> settings)
     {
-        _redisCache = redisCache;
+        _settings = settings.Value ?? throw new ArgumentNullException(nameof(settings));
+        _songsCollection = mongoDbService.GetSongsCollection();
     }
-    public record Song(string Artist, string Name, int Number, string? Category);
 
     public record RequestError(string? Message = null, object? Content = null);
 
-    public record Catalog(Dictionary<string, ICollection<Song>> SongGroups);
+    public record Catalog(ICollection<Song> SongGroups);
 
-    private async Task<Catalog> GetSongsFromCache()
-    {
-        // Line here for debugging purposes locally
-        // var content = _localCache.ContainsKey(CacheEntryName) ? _localCache[CacheEntryName] : null;
-        var content = await _redisCache.GetStringAsync(CacheEntryName);
-        if (content == null)
-        {
-            return new Catalog(new Dictionary<string, ICollection<Song>>());
-        }
-        var songs = JsonSerializer.Deserialize<Catalog>(content);
-        return songs ?? new Catalog(new Dictionary<string, ICollection<Song>>());
-    }
     [HttpGet(Name = "GetSongs")]
     public async Task<Catalog> GetSongs()
     {
-        return await GetSongsFromCache();
+        var songs = await  _songsCollection.Find(_ => true).ToListAsync();
+        return new Catalog(songs);
+    }
+    
+    [HttpGet("duplicates",Name = "FindDuplicates")]
+    public async Task<List<string>> GetDuplicates()
+    {
+        var result = _songsCollection.Aggregate()
+            .Group(
+                x => x.Number,
+                x =>
+                    new
+                    {
+                        x.Key,
+                        Entries = x.Count()
+                    })
+            .ToList()
+            .Where(x => x.Entries > 1)
+            .Select(x => x.Key)
+            .ToList();
+        var songs = (await _songsCollection.FindAsync(x => result.Contains(x.Number)))
+            .ToList()
+            .OrderBy(x => x.Number)
+            .Select(x => $"{x.Number}_{x.Artist}_{x.Name}")
+            .ToList();
+        return songs;
+    }
+    
+    [HttpPost("merge")]
+    public async Task Merge()
+    {
+        await MergeSongs();
     }
 
     [HttpPost("clear")]
     public async Task ClearCache()
     {
-        await _redisCache.RemoveAsync(CacheEntryName);
-    }
-
-    [HttpPost("validate")]
-    public IActionResult Validate([FromForm] IFormFile file)
-    {
-        var result = ParseDocumentLines(file);
-        return result.Match<IActionResult>(Ok, UnprocessableEntity );
+        await _songsCollection.Database.DropCollectionAsync(_settings.SongsCollectionName);
+        await _songsCollection.Database.CreateCollectionAsync(_settings.SongsCollectionName);
     }
 
     [HttpPost("{tagName}", Name = "UploadList")]
     public async Task<IActionResult> Post(string tagName, [FromForm] IFormFile file)
     {
         tagName = Uri.UnescapeDataString(tagName);
-        var result = ParseDocumentLines(file);
+        var result = ParseDocumentLines(file, tagName);
 
         return await result.Match<Task<IActionResult>>(async content =>
         {
-            var storedCatalog = await GetSongsFromCache();
-            if (storedCatalog.SongGroups.ContainsKey(tagName))
-            {
-                storedCatalog.SongGroups.Remove(tagName);
-            }
-            storedCatalog.SongGroups.Add(tagName, content);
-
-            var cacheContent = JsonSerializer.Serialize(storedCatalog);
-
-            // Line here for debugging purposes locally
-            // _localCache[CacheEntryName] = cacheContent;
-            await _redisCache.SetStringAsync(CacheEntryName, cacheContent);
-            return Ok(cacheContent);
+            await _songsCollection.InsertManyAsync(content);
+            // await MergeSongs();
+            return Ok(content.Count);
         },async request => await Task.FromResult(BadRequest(request)));
     }
 
-    private static OneOf<List<Song>, RequestError> ParseDocumentLines(IFormFile file)
+    private async Task MergeSongs()
+    {
+        var result = _songsCollection.Aggregate()
+            .Group(
+                x => new { x.Number, x.Artist, x.Name },
+                x =>
+                    new
+                    {
+                        x.Key,
+                        Entries = x.Count()
+                    })
+            .ToList()
+            .Where(x => x.Entries > 1)
+            .ToList();
+        foreach (var x1 in result)
+        {
+            var duplicateSongs = (await _songsCollection.FindAsync(
+                x => x.Number == x1.Key.Number)).ToList();
+            var idsToDelete = new List<string>();
+            for (var i = 1; i < duplicateSongs.Count; i++)
+            {
+                duplicateSongs[0].Catalogs.AddRange(duplicateSongs[i].Catalogs);
+                idsToDelete.Add(duplicateSongs[i].Id);
+            }
+
+            duplicateSongs[0].Catalogs = duplicateSongs[0].Catalogs.Distinct().ToList();
+            await _songsCollection.FindOneAndReplaceAsync(
+                x => x.Id == duplicateSongs[0].Id,
+                duplicateSongs[0]);
+            await _songsCollection.DeleteManyAsync(x => idsToDelete.Contains(x.Id));
+        }
+    }
+
+    private static OneOf<ICollection<Song>, RequestError> ParseDocumentLines(IFormFile file, string catalogName = "")
     {
         if (!file.FileName.EndsWith("docx"))
         {
             return new RequestError($"Document extension should be docx - received file with name {file.FileName}");
         }
 
-        using WordprocessingDocument doc = WordprocessingDocument.Open(file.OpenReadStream(), false);
+        using var doc = WordprocessingDocument.Open(file.OpenReadStream(), false);
         // Find the first table in the document.   
         var tables = doc.MainDocumentPart.Document.Body.Elements<Table>();
 
         // To get all rows from table
-        var content = new List<Song>();
+        var content = new Dictionary<string, Song>();
         var faultyLines = new List<string>();
         foreach (var table in tables)
         {
@@ -104,8 +139,7 @@ public class SongsController : ControllerBase
             var category = "";
             foreach (var row in rows)
             {
-                var currentRow = new List<string>();
-                currentRow.AddRange(row.Descendants<TableCell>().Select(cell => cell.InnerText));
+                var currentRow = row.Descendants<TableCell>().Select(cell => cell.InnerText).ToList();
                 if (isFirstRow)
                 {
                     category = currentRow[1];
@@ -115,8 +149,21 @@ public class SongsController : ControllerBase
 
                 try
                 {
-                    content.Add(new Song(currentRow[2].Trim(), currentRow[1].Trim(), int.Parse(currentRow[0]),
-                        category is "Title" or "Titre" ? "General" : category));
+                    var categoryName = category is "Title" or "Titre" ? "General" : category;
+                    var song = new Song
+                    {
+                        Artist = currentRow[2].Trim(),
+                        Name = currentRow[1].Trim(),
+                        Number = int.Parse(currentRow[0]),
+                        Categories = new List<string>{ categoryName},
+                        Catalogs = new List<string> { catalogName}
+                    };
+                    if (content.ContainsKey(song.Key))
+                    {
+                        content[song.Key].Categories.Add(categoryName);
+                        continue;
+                    }
+                    content.Add(song.Key, song);
                 }
                 catch (Exception)
                 {
@@ -124,6 +171,6 @@ public class SongsController : ControllerBase
                 }
             }
         }
-        return faultyLines.Any() ? new RequestError("The lines in content were faulty", faultyLines) : content;
+        return faultyLines.Any() ? new RequestError("The lines in content were faulty", faultyLines) : content.Values.ToList();
     }
 }

@@ -1,7 +1,6 @@
-using System;
 using Karaoke_catalog_server;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
+using Karaoke.Api;
+using Karaoke.Api.Settings;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 
@@ -27,6 +26,9 @@ if(redisUrl != null)
         options.ConfigurationOptions = ConfigurationOptions.Parse($"{tokens[3]}:{tokens[4]},password={tokens[2]}"); 
     });
 }
+builder.Services.Configure<SongsCollectionSettings>(
+    builder.Configuration.GetSection("SongsDatabase"));
+builder.Services.AddTransient(typeof(MongoDbService));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -34,6 +36,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
+var mongoDbService = app.Services.GetRequiredService<MongoDbService>();
+await mongoDbService.AddSongsCollectionIfNotExistsAsync();
 
 app.UseCors(options => options.AllowAnyOrigin());
 

@@ -14,7 +14,9 @@ public record SongsCollectionSettings
 
     public string GetFullConnectionString()
     {
-        return ConnectionString.Replace("<username>", Username)
+        var connectionString = ConnectionString.Replace("<username>", Username)
             .Replace("<password>", Password);
+        Console.WriteLine(connectionString);
+        return connectionString;
     }
 }

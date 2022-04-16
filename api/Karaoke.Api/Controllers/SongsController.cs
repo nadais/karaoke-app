@@ -32,9 +32,11 @@ public class SongsController : ControllerBase
         var songs = await  _songsCollection.Find(_ => true).ToListAsync();
         return new Catalog(songs);
     }
-    
-    [HttpGet("duplicates",Name = "FindDuplicates")]
-    public async Task<List<string>> GetDuplicates()
+
+    public record StatusResponse(List<string> Duplicates, List<string> AvailableNumbers);
+
+    [HttpGet("status",Name = "FindDuplicates")]
+    public async Task<StatusResponse> GetDuplicates()
     {
         var result = _songsCollection.Aggregate()
             .Group(
@@ -54,7 +56,32 @@ public class SongsController : ControllerBase
             .OrderBy(x => x.Number)
             .Select(x => $"{x.Number}_{x.Artist}_{x.Name}")
             .ToList();
-        return songs;
+        var songNumbers = await _songsCollection.Find(_ => true)
+            .Project(x => x.Number)
+            .ToListAsync();
+        songNumbers = songNumbers.OrderBy(x => x).ToList();
+        var startNumber = 1;
+        var missingNumbers = new List<string>();
+        foreach (var songNumber in songNumbers)
+        {
+            if (startNumber == songNumber)
+            {
+                startNumber++;
+                continue;
+            }
+
+            if (startNumber >= songNumber)
+            {
+                continue;
+            }
+
+            missingNumbers.Add(startNumber == songNumber - 1 ?
+                $"{startNumber}" :
+                $"{startNumber}-{songNumber - 1}");
+            startNumber = songNumber + 1;
+        }
+        missingNumbers.Add($"{startNumber}+");
+        return new StatusResponse(songs, missingNumbers);
     }
     
     [HttpPost("merge")]

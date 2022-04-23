@@ -1,0 +1,47 @@
+{
+    "categories":
+    {
+        "disney": "Disney",
+        "general": "General",
+        "musicals": "Musicals",
+        "duo and more...": "Duo and more..."
+    },
+    "catalogs":
+    {
+        "english/international": "English/International",
+        "french": "French"
+    },
+    "reload": "Reload songs",
+    "selectCatalog": "Select catalog",
+    "selectCategory": "Select category",
+    "selectLanguage": "Select language",
+    "title": "Karaoke night",
+    "name": "Name",
+    "number": "Number",
+    "artist": "Artist",
+    "loading": "Loading...",
+    "searchSongs": "Search songs",
+    "noMatches": "No results",
+
+    "filterOoo": "Filter...",
+    "equals": "Equals",
+    "notEqual": "Not equals",
+    "blank": "Blank",
+    "notBlank": "Not blank",
+    "empty": "Pick one",
+
+    "lessThan": "Less than",
+    "greaterThan": "Greater than",
+    "lessThanOrEqual": "Less than or equal",
+    "greaterThanOrEqual": "Greater or equal",
+    "inRange": "In range",
+    "inRangeStart": "from",
+    "inRangeEnd": "to",
+
+    "contains": "Contains",
+    "notContains":"Does not contain",
+    "startsWith": "Starts with",
+    "endsWith": "Ends with",
+    "noRowsToShow": "No results",
+    "andCondition": "AND",
+    "orCondition": "OR"}

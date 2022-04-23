@@ -1,0 +1,49 @@
+{
+    "categories":
+    {
+        "disney": "Disney",
+        "general": "Geral",
+        "musicals": "Musicais",
+        "duo and more...": "Duo e mais..."
+    },
+    "catalogs":
+    {
+        "english/international": "Inglês/Internacional",
+        "french": "Francês"
+    },
+
+    "reload": "Recarregar músicas",
+    "selectCatalog": "Selecionar catálogo",
+    "selectCategory": "Selecionar categoria",
+    "selectLanguage": "Selecionar língua",
+    "title": "Noite de karaoke",
+    "name": "Nome",
+    "number": "Número",
+    "artist": "Artista",
+    "loading": "A carregar...",
+    "searchSongs": "Procurar músicas",
+    "noMatches": "Sem resultados",
+
+    "filterOoo": "Filtrar...",
+    "equals": "Igual a",
+    "notEqual": "Diferente de",
+    "blank": "Branco",
+    "notBlank": "Não branco",
+    "empty": "Escolhe um",
+
+    "lessThan": "Menor que",
+    "greaterThan": "Maior que",
+    "lessThanOrEqual": "Menor ou igual que",
+    "greaterThanOrEqual": "Maior ou igual que",
+    "inRange": "No intervalo",
+    "inRangeStart": "de",
+    "inRangeEnd": "a",
+
+    "contains": "Contém",
+    "notContains":"Não contém",
+    "startsWith": "Começa com",
+    "endsWith": "Acaba com",
+    "noRowsToShow": "Sem resultados",
+    "andCondition": "E",
+    "orCondition": "OU"
+}

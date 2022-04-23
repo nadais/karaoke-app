@@ -1,20 +1,21 @@
 {
   "files": {
-    "main.js": "/karaoke-app/static/js/main.c2ddd3d6.chunk.js",
-    "main.js.map": "/karaoke-app/static/js/main.c2ddd3d6.chunk.js.map",
+    "main.js": "/karaoke-app/static/js/main.f6f2d0bb.chunk.js",
+    "main.js.map": "/karaoke-app/static/js/main.f6f2d0bb.chunk.js.map",
     "runtime-main.js": "/karaoke-app/static/js/runtime-main.7e76a75a.js",
     "runtime-main.js.map": "/karaoke-app/static/js/runtime-main.7e76a75a.js.map",
     "static/css/2.588ad167.chunk.css": "/karaoke-app/static/css/2.588ad167.chunk.css",
-    "static/js/2.6102b8b2.chunk.js": "/karaoke-app/static/js/2.6102b8b2.chunk.js",
-    "static/js/2.6102b8b2.chunk.js.map": "/karaoke-app/static/js/2.6102b8b2.chunk.js.map",
+    "static/js/2.c8600b43.chunk.js": "/karaoke-app/static/js/2.c8600b43.chunk.js",
+    "static/js/2.c8600b43.chunk.js.map": "/karaoke-app/static/js/2.c8600b43.chunk.js.map",
     "index.html": "/karaoke-app/index.html",
     "static/css/2.588ad167.chunk.css.map": "/karaoke-app/static/css/2.588ad167.chunk.css.map",
-    "static/js/2.6102b8b2.chunk.js.LICENSE.txt": "/karaoke-app/static/js/2.6102b8b2.chunk.js.LICENSE.txt"
+    "static/js/2.c8600b43.chunk.js.LICENSE.txt": "/karaoke-app/static/js/2.c8600b43.chunk.js.LICENSE.txt",
+    "static/media/getFetch.cjs": "/karaoke-app/static/media/getFetch.582d29c4.cjs"
   },
   "entrypoints": [
     "static/js/runtime-main.7e76a75a.js",
     "static/css/2.588ad167.chunk.css",
-    "static/js/2.6102b8b2.chunk.js",
-    "static/js/main.c2ddd3d6.chunk.js"
+    "static/js/2.c8600b43.chunk.js",
+    "static/js/main.f6f2d0bb.chunk.js"
   ]
 }

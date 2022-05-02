@@ -117,14 +117,14 @@ public class SongsController : ControllerBase
     [HttpPost("sync-genres", Name = "SyncGenres")]
     public async Task<IActionResult> SyncGenres()
     {
-        var songs = (await _songsCollection.FindAsync( x => x.GenreId == null)).ToList();
+        var songs = (await _songsCollection.FindAsync( x => x.Genres == null || x.Genres.Count == 0)).ToList();
         for (var i = 0; i < songs.Count; i+=50)
         {
             var minimum = Math.Min(50, songs.Count - i);
             for (var j = i; j < i + minimum; j++)
             {
                 var data = await _deezerClient.GetSongGenre(songs[j].Name, songs[j].Artist);
-                await _songsCollection.UpdateOneAsync(x => x.Id == songs[j].Id, Builders<Song>.Update.Set(x => x.GenreId, data));
+                await _songsCollection.UpdateOneAsync(x => x.Id == songs[j].Id, Builders<Song>.Update.Set(x => x.Genres, data.ToList()));
             }
         }
 
@@ -159,7 +159,7 @@ public class SongsController : ControllerBase
             for (var i = 1; i < duplicateSongs.Count; i++)
             {
                 duplicateSongs[0].Catalogs.AddRange(duplicateSongs[i].Catalogs);
-                duplicateSongs[0].GenreId ??= duplicateSongs[i].GenreId;
+                duplicateSongs[0].Genres ??= duplicateSongs[i].Genres;
                 idsToDelete.Add(duplicateSongs[i].Id);
             }
 

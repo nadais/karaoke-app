@@ -85,7 +85,7 @@ function Page() {
     }
     async function fetchSongsRemotely(language) {
         setLoading(true);
-        let genresResponse = await fetch(`https://localhost:5001/songs/genres?language=${language ?? ''}`);
+        let genresResponse = await fetch(`https://karaoke-juliane.herokuapp.com/songs/genres?language=${language ?? ''}`);
         let result = await fetch('https://localhost:5001/songs');
         var response =  await result.json();
         var genres = await genresResponse.json();
@@ -95,7 +95,7 @@ function Page() {
         let catalogs = fullCatalog.flatMap(x => x.catalogs).filter((v, i, a) => a.indexOf(v) === i && v != null);
         let categories = fullCatalog.flatMap(x => x.categories).filter((v, i, a) => a.indexOf(v) === i && v != null);
         let availableGenres = fullCatalog
-                    .map(x => x.genreId)
+                    .flatMap(x => x.genres)
                     .filter((v, i, a) => a.indexOf(v) === i && v != null)
                     .map(id =>
                         {
@@ -116,7 +116,7 @@ function Page() {
             result = result.filter(x => x.categories.includes(newCategory));
         }
         if (genre != null && genre !== '') {
-            result = result.filter(x => x.genreId == genre);
+            result = result.filter(x => x.genres.includes(genre));
         }
         return result;
     }
@@ -127,7 +127,7 @@ function Page() {
         setRowData(getRowData(catalogName, newCategory, currentGenre));
     }
     function onGenreChanged(event) {
-        let newGenre = event.target.value === '' ? undefined : event.target.value;
+        let newGenre = event.target.value === '' ? undefined : parseInt(event.target.value);
         setCurrentGenre(newGenre);
         setRowData(getRowData(catalogName, category, newGenre));
     }

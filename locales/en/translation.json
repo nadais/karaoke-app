@@ -12,6 +12,7 @@
         "french": "French"
     },
     "reload": "Reload songs",
+    "selectGenre": "Select genre",
     "selectCatalog": "Select catalog",
     "selectCategory": "Select category",
     "selectLanguage": "Select language",

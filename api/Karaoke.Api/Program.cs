@@ -29,6 +29,7 @@ if(redisUrl != null)
 builder.Services.Configure<SongsCollectionSettings>(
     builder.Configuration.GetSection("SongsDatabase"));
 builder.Services.AddTransient(typeof(MongoDbService));
+builder.Services.AddHttpClient<DeezerClient>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -37,7 +38,7 @@ app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 var mongoDbService = app.Services.GetRequiredService<MongoDbService>();
-await mongoDbService.AddSongsCollectionIfNotExistsAsync();
+await mongoDbService.AddCollectionsIfNotExistsAsync();
 
 app.UseCors(options => options.AllowAnyOrigin());
 

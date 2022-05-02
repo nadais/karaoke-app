@@ -11,6 +11,8 @@ public record SongsCollectionSettings
     public string? Password { get; init; }
 
     public string? SongsCollectionName { get; set; }
+    
+    public string? UsersCollectionName { get; set; }
 
     public string GetFullConnectionString()
     {

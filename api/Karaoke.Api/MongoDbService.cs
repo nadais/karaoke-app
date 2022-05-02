@@ -14,7 +14,7 @@ public class MongoDbService
         _settings = settings.Value ?? throw new ArgumentNullException(nameof(settings));
     }
 
-    public async Task AddSongsCollectionIfNotExistsAsync()
+    public async Task AddCollectionsIfNotExistsAsync()
     {
         var mongoDatabase = GetDatabase();
         var filter = new BsonDocument("name", _settings.SongsCollectionName);
@@ -24,6 +24,13 @@ public class MongoDbService
         {
             await mongoDatabase.CreateCollectionAsync(_settings.SongsCollectionName);
         }
+        filter = new BsonDocument("name", _settings.UsersCollectionName);
+        options = new ListCollectionNamesOptions { Filter = filter };
+        hasCollection = await (await mongoDatabase.ListCollectionNamesAsync(options)).AnyAsync();
+        if (!hasCollection)
+        {
+            await mongoDatabase.CreateCollectionAsync(_settings.UsersCollectionName);
+        }
     }
     
     public IMongoCollection<Song> GetSongsCollection()
@@ -31,6 +38,13 @@ public class MongoDbService
         var db = GetDatabase();
         return db.GetCollection<Song>(
             _settings.SongsCollectionName);
+    }
+    
+    public IMongoCollection<User> GetUsersCollection()
+    {
+        var db = GetDatabase();
+        return db.GetCollection<User>(
+            _settings.UsersCollectionName);
     }
 
     private IMongoDatabase GetDatabase()

@@ -86,7 +86,7 @@ function Page() {
     async function fetchSongsRemotely(language) {
         setLoading(true);
         let genresResponse = await fetch(`https://karaoke-juliane.herokuapp.com/songs/genres?language=${language ?? ''}`);
-        let result = await fetch('https://localhost:5001/songs');
+        let result = await fetch('https://karaoke-juliane.herokuapp.com/songs');
         var response =  await result.json();
         var genres = await genresResponse.json();
         setGenres(genres);

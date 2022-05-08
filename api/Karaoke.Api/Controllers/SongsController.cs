@@ -12,12 +12,15 @@ namespace Karaoke.Api.Controllers;
 [Route("[controller]")]
 public class SongsController : ControllerBase
 {
+    private readonly DeezerClient _deezerClient;
     private readonly SongsCollectionSettings _settings;
     private readonly IMongoCollection<Song> _songsCollection;
     public SongsController(
         MongoDbService mongoDbService,
+        DeezerClient deezerClient,
         IOptions<SongsCollectionSettings> settings)
     {
+        _deezerClient = deezerClient;
         _settings = settings.Value ?? throw new ArgumentNullException(nameof(settings));
         _songsCollection = mongoDbService.GetSongsCollection();
     }
@@ -111,6 +114,29 @@ public class SongsController : ControllerBase
         },async request => await Task.FromResult(BadRequest(request)));
     }
 
+    [HttpPost("sync-genres", Name = "SyncGenres")]
+    public async Task<IActionResult> SyncGenres()
+    {
+        var songs = (await _songsCollection.FindAsync( x => x.Genres == null || x.Genres.Count == 0)).ToList();
+        for (var i = 0; i < songs.Count; i+=50)
+        {
+            var minimum = Math.Min(50, songs.Count - i);
+            for (var j = i; j < i + minimum; j++)
+            {
+                var data = await _deezerClient.GetSongGenre(songs[j].Name, songs[j].Artist);
+                await _songsCollection.UpdateOneAsync(x => x.Id == songs[j].Id, Builders<Song>.Update.Set(x => x.Genres, data.ToList()));
+            }
+        }
+
+        return Ok();
+    }
+    
+    [HttpGet("genres", Name = "GetGenres")]
+    public async Task<ICollection<DeezerClient.Genre>> GetGenres([FromQuery] string? language)
+    {
+        return await _deezerClient.GetGenres(language);
+    }
+
     private async Task MergeSongs()
     {
         var result = _songsCollection.Aggregate()
@@ -133,6 +159,7 @@ public class SongsController : ControllerBase
             for (var i = 1; i < duplicateSongs.Count; i++)
             {
                 duplicateSongs[0].Catalogs.AddRange(duplicateSongs[i].Catalogs);
+                duplicateSongs[0].Genres ??= duplicateSongs[i].Genres;
                 idsToDelete.Add(duplicateSongs[i].Id);
             }
 

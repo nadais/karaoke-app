@@ -15,6 +15,8 @@ function Page() {
     const [songs, setSongs] = useState([]);
     const [catalogs, setCatalogs] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [genres, setGenres] = useState([]);
+    const [currentGenre, setCurrentGenre] = useState(undefined);
     const [category, setCategory] = useState(undefined);
     const [catalogName, setCatalogName] = useState(undefined);
     const searchDivStyle = { backgroundColor: "#dedede", padding: 10 }
@@ -34,7 +36,7 @@ function Page() {
         if (lang != null) {
             i18n.changeLanguage(lang);
         }
-        fetchSongsRemotely();
+        fetchSongsRemotely(lang);
     }, []);
     function getLoading() {
         if (loading) {
@@ -49,6 +51,15 @@ function Page() {
                 <option value=""> {t('selectCategory')}</option>
                 {categories.map(key =>
                     (<option value={key} key={key}>{t(`categories.${key.toLowerCase()}`)}</option>))}
+            </select>
+        </div>
+    }
+    function getGenres() {
+        return <div className="col">
+            <select className="form-select" name='catalog' onChange={onGenreChanged}>
+                <option value=""> {t('selectGenre')}</option>
+                {genres.map(key =>
+                    (<option value={key.id} key={key.id}>{key.name}</option>))}
             </select>
         </div>
     }
@@ -72,29 +83,40 @@ function Page() {
             </div>
         }
     }
-    function fetchSongsRemotely() {
+    async function fetchSongsRemotely(language) {
         setLoading(true);
-        fetch('https://karaoke-juliane.herokuapp.com/songs')
-            .then(result => {
-                var test = result.json();
-                return test;
-            })
-            .then(response => {
-                setLoading(false);
-                let fullCatalog = response.songGroups;
-                let catalogs = fullCatalog.flatMap(x => x.catalogs).filter((v, i, a) => a.indexOf(v) === i && v != null);
-                let categories = fullCatalog.flatMap(x => x.categories).filter((v, i, a) => a.indexOf(v) === i && v != null);
-                setCatalogs(catalogs);
-                setCategories(categories);
-                setSongs(response.songGroups);
-                setRowData(fullCatalog);
-            });
+        let genresResponse = await fetch(`https://karaoke-juliane.herokuapp.com/songs/genres?language=${language ?? ''}`);
+        let result = await fetch('https://karaoke-juliane.herokuapp.com/songs');
+        var response =  await result.json();
+        var genres = await genresResponse.json();
+        setGenres(genres);
+        setLoading(false);
+        let fullCatalog = response.songGroups;
+        let catalogs = fullCatalog.flatMap(x => x.catalogs).filter((v, i, a) => a.indexOf(v) === i && v != null);
+        let categories = fullCatalog.flatMap(x => x.categories).filter((v, i, a) => a.indexOf(v) === i && v != null);
+        let availableGenres = fullCatalog
+                    .flatMap(x => x.genres)
+                    .filter((v, i, a) => a.indexOf(v) === i && v != null)
+                    .map(id =>
+                        {
+                            var elem = genres.find(x => x.id === id);
+                            return elem;
+                        })
+                    .filter(elem => elem != null);
+        setGenres(availableGenres);
+        setCatalogs(catalogs);
+        setCategories(categories);
+        setSongs(response.songGroups);
+        setRowData(fullCatalog);
     }
 
-    function getRowData(newCatalogName, newCategory) {
+    function getRowData(newCatalogName, newCategory, genre) {
         let result = newCatalogName == null || newCatalogName === '' ? songs : songs.filter(x => x.catalogs.includes(newCatalogName));
         if (newCategory != null && newCategory !== '') {
             result = result.filter(x => x.categories.includes(newCategory));
+        }
+        if (genre != null && genre !== '') {
+            result = result.filter(x => x.genres.includes(genre));
         }
         return result;
     }
@@ -102,7 +124,12 @@ function Page() {
     function onCategoryChanged(event) {
         let newCategory = event.target.value === '' ? undefined : event.target.value;
         setCategory(newCategory);
-        setRowData(getRowData(catalogName, newCategory));
+        setRowData(getRowData(catalogName, newCategory, currentGenre));
+    }
+    function onGenreChanged(event) {
+        let newGenre = event.target.value === '' ? undefined : parseInt(event.target.value);
+        setCurrentGenre(newGenre);
+        setRowData(getRowData(catalogName, category, newGenre));
     }
 
     function onLanguageChanged(event) {
@@ -116,7 +143,7 @@ function Page() {
     function onCatalogChanged(event) {
         let newCatalog = event.target.value === '' ? undefined : event.target.value;
         setCatalogName(newCatalog);
-        setRowData(getRowData(newCatalog, category));
+        setRowData(getRowData(newCatalog, category, currentGenre));
     }
     function translate(key) {
         return t(key);
@@ -139,6 +166,7 @@ function Page() {
                     </select>
                 </div>
                 {getCategories()}
+                {getGenres()}
                 <div className="col">
                     <button onClick={fetchSongsRemotely} className="btn btn-primary">
                         {t('reload')}

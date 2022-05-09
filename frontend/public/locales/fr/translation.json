@@ -1,0 +1,47 @@
+{
+    "categories":
+    {
+        "disney": "Disney",
+        "general": "Général",
+        "musicals": "Comédies Musicales",
+        "duo and more...": "Duo et autres..."
+    },
+    "catalogs":
+    {
+        "english/international": "Anglais/International",
+        "french": "Français"
+    },
+    "reload": "Rafraîchir la page",
+    "selectGenre": "Genre",
+    "selectCatalog": "Catalogue",
+    "selectCategory": "Catégorie",
+    "selectLanguage": "Langue",
+    "name": "Nom",
+    "number": "Nombre",
+    "artist": "Artiste",
+    "loading": "Chargement...",
+    "searchSongs": "Rechercher une musique",
+    "noMatches": "Aucun résultat",
+
+    "filterOoo": "Filtre...",
+    "equals": "Egal",
+    "notEqual": "Pas égal",
+    "blank": "Blanc",
+    "notBlank": "Pas de blanc",
+    "empty": "Choisir",
+
+    "lessThan": "Moins que",
+    "greaterThan": "Mieux que",
+    "lessThanOrEqual": "Moins que ou égal",
+    "greaterThanOrEqual": "plus que ou égal",
+    "inRange": "dans la gamme",
+    "inRangeStart": "de",
+    "inRangeEnd": "jusqu'à",
+
+    "contains": "Contient",
+    "notContains":"Ne contient pas",
+    "startsWith": "Commence avec",
+    "endsWith": "Fini avec",
+    "noRowsToShow": "Pas de résultats",
+    "andCondition": "ET",
+    "orCondition": "OU"}

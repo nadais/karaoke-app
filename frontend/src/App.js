@@ -19,7 +19,7 @@ function Page() {
     const [currentGenre, setCurrentGenre] = useState(undefined);
     const [category, setCategory] = useState(undefined);
     const [catalogName, setCatalogName] = useState(undefined);
-    const searchDivStyle = { backgroundColor: "#dedede", padding: 10 }
+    const searchDivStyle = { padding: 10 }
     const searchStyle = {
         width: "100%", padding: "10px 20px", borderRadius: 20, outline: 0,
         border: "2px #68bf40 solid", fontSize: "100%"
@@ -66,7 +66,9 @@ function Page() {
     function getLanguages() {
         let languages = {
             "en": "English",
-            "pt": "Português"
+            "pt": "Português",
+            "fr": "Français",
+            "it": "Italiano"
         }
         return <span>
             <select name='language' onChange={onLanguageChanged}>
@@ -95,14 +97,14 @@ function Page() {
         let catalogs = fullCatalog.flatMap(x => x.catalogs).filter((v, i, a) => a.indexOf(v) === i && v != null);
         let categories = fullCatalog.flatMap(x => x.categories).filter((v, i, a) => a.indexOf(v) === i && v != null);
         let availableGenres = fullCatalog
-                    .flatMap(x => x.genres)
-                    .filter((v, i, a) => a.indexOf(v) === i && v != null)
-                    .map(id =>
-                        {
-                            var elem = genres.find(x => x.id === id);
-                            return elem;
-                        })
-                    .filter(elem => elem != null);
+            .flatMap(x => x.genres)
+            .filter((v, i, a) => a.indexOf(v) === i && v != null)
+            .map(id =>
+                {
+                var elem = genres.find(x => x.id === id);
+                return elem;
+            })
+            .filter(elem => elem != null);
         setGenres(availableGenres);
         setCatalogs(catalogs);
         setCategories(categories);
@@ -151,12 +153,10 @@ function Page() {
 
     return (
         <div>
-            <div className='row'>
-                <div className='col'>
-                    <h1 align="center">{t('title')}</h1>
-                </div>
-                {getLanguages()}
+            <div class="row">
+                <div class="col-6 offset-md-4 offset-lg-4"><img class="header-image" src="header.png" /></div>
             </div>
+            {getLanguages()}
             <div className="row">
                 <div className="col">
                     <select className="form-select" name='catalog' onChange={onCatalogChanged}>
@@ -168,9 +168,6 @@ function Page() {
                 {getCategories()}
                 {getGenres()}
                 <div className="col">
-                    <button onClick={fetchSongsRemotely} className="btn btn-primary">
-                        {t('reload')}
-                    </button>
                     {getLoading()}
                 </div>
             </div>

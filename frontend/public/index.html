@@ -29,12 +29,28 @@
       html, body {
         margin:0px;
         height:100%;
+        background-image: url("background.jpeg");
       }
       #root
       {
         width: 100%;
         height:100%;
       }
+      .ag-theme-alpine .ag-root-wrapper,.ag-theme-alpine .ag-row-odd,.ag-theme-alpine .ag-row-even
+      {
+        opacity: .8;
+        font-weight: bold;
+      }
+      .header-image
+      {
+        max-height: 250px;
+      }
+      @media only screen and (max-width: 600px) {
+        .header-image
+      {
+        max-height: 150px;
+      }
+}
     </style>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>

@@ -1,14 +1,50 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { AgGridColumn, AgGridReact } from 'ag-grid-react';
 import { useTranslation } from 'react-i18next';
-import { BrowserRouter, useParams, useSearchParams } from 'react-router-dom';
-
+import { BrowserRouter, useSearchParams } from 'react-router-dom';
+import CheckboxRenderer from './CheckboxRenderer';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 
 function Page() {
     const [searchParams, setSearchParams] = useSearchParams();
     const { t, i18n } = useTranslation();
+    <AgGridColumn field="name" headerName={translate("name")} sortable={true} filter={true} flex={4} minWidth={250} />
+    const [columnDefs] = useState([
+        {
+            headerName: translate("mylist"),
+            field: "selected",
+            cellRenderer: "checkboxRenderer",
+            sort: 'desc',
+            flex: 1
+        },  
+        { 
+            field: "number",
+            headerName: translate("number"),
+            sortable: true,
+            filter: true,
+            flex: 1,
+            minWidth: 80
+        },
+        { 
+            field: "name",
+            headerName: translate("name"),
+            sortable: true,
+            filter: true,
+            flex: 4,
+            minWidth: 250
+        },
+        { 
+            field: "artist",
+            headerName: translate("artist"),
+            sortable: true,
+            filter: true,
+            flex: 2,
+            sort: 'asc',
+            minWidth: 170
+        }
+      ],
+)
     const [rowData, setRowData] = useState([]);
     const [gridApi, setGridApi] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -37,7 +73,7 @@ function Page() {
             i18n.changeLanguage(lang);
         }
         fetchSongsRemotely(lang);
-    }, []);
+    }, [i18n, searchParams]);
     function getLoading() {
         if (loading) {
             return <div className="spinner-border" role="status">
@@ -93,7 +129,17 @@ function Page() {
         var genres = await genresResponse.json();
         setGenres(genres);
         setLoading(false);
+        var listStorage = localStorage.getItem("mylist");
+        var currentList = JSON.parse(listStorage);
+        if(currentList == null)
+        {
+          currentList = [];
+        }
         let fullCatalog = response.songGroups;
+        fullCatalog = fullCatalog.map(x => {
+            x.selected = currentList.includes(x.id);
+            return x;
+        })
         let catalogs = fullCatalog.flatMap(x => x.catalogs).filter((v, i, a) => a.indexOf(v) === i && v != null);
         let categories = fullCatalog.flatMap(x => x.categories).filter((v, i, a) => a.indexOf(v) === i && v != null);
         let availableGenres = fullCatalog
@@ -154,7 +200,7 @@ function Page() {
     return (
         <div>
             <div class="row">
-                <div class="col-6 offset-md-4 offset-lg-4"><img class="header-image" src="header.png" /></div>
+                <div class="col-6 offset-md-4 offset-lg-4"><img class="header-image" src="header.png" alt="Karaoke night"/></div>
             </div>
             {getLanguages()}
             <div className="row">
@@ -182,11 +228,12 @@ function Page() {
                         filter: true,
                         suppressMovable: true
                     }}
+                    columnDefs={columnDefs}
                     localeTextFunc={translate}
+                    frameworkComponents={{
+                        checkboxRenderer: CheckboxRenderer
+                      }}
                     onGridReady={onGridReady}>
-                    <AgGridColumn field="number" headerName={translate("number")} sortable={true} filter={true} flex={1} minWidth={80} />
-                    <AgGridColumn field="name" headerName={translate("name")} sortable={true} filter={true} flex={4} minWidth={250} />
-                    <AgGridColumn field="artist" headerName={translate("artist")} sortable={true} filter={true} flex={2} sort={'asc'} minWidth={170} />
                 </AgGridReact>
             </div>
         </div>

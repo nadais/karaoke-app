@@ -11,6 +11,7 @@
         "english/international": "Inglese/Internazionale",
         "french": "Francese"
     },
+    "mylist": "Mia lista",
     "reload": "Ricaricare",
     "selectGenre": "Genere",
     "selectCatalog": "Catalogo",
@@ -44,4 +45,5 @@
     "endsWith": "Finisce con",
     "noRowsToShow": "Nessun risultato",
     "andCondition": "E",
-    "orCondition": "O"}
+    "orCondition": "O"
+}

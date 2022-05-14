@@ -117,15 +117,15 @@ public class SongsController : ControllerBase
     [HttpPost("sync-genres", Name = "SyncGenres")]
     public async Task<IActionResult> SyncGenres()
     {
-        var songs = (await _songsCollection.FindAsync( x => x.Genres == null || x.Genres.Count == 0)).ToList();
-        for (var i = 0; i < songs.Count; i+=50)
+        var artists = (await _songsCollection.FindAsync( x => x.Genres == null || x.Genres.Count == 0)).ToList()
+            .Select(x => x.Artist)
+            .Distinct()
+            .ToList();
+        foreach (var artist in artists)
         {
-            var minimum = Math.Min(50, songs.Count - i);
-            for (var j = i; j < i + minimum; j++)
-            {
-                var data = await _deezerClient.GetSongGenre(songs[j].Name, songs[j].Artist);
-                await _songsCollection.UpdateOneAsync(x => x.Id == songs[j].Id, Builders<Song>.Update.Set(x => x.Genres, data.ToList()));
-            }
+            var result = await _deezerClient.GetSongGenre(artist);
+            await _songsCollection.UpdateManyAsync(x => x.Artist == artist, 
+                Builders<Song>.Update.Set(x => x.Genres, result.ToList()));
         }
 
         return Ok();

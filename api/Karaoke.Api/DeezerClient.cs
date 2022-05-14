@@ -20,12 +20,12 @@ public class DeezerClient
     
     public record Genre(int Id, string Name, string Picture);
 
-    public async Task<ICollection<int>> GetSongGenre(string songName, string artistName)
+    public async Task<ICollection<int>> GetSongGenre(string artistName)
     {
         var result = new HashSet<int>();
         try
         {
-            var apiResult = await _httpClient.GetStringAsync($"{_remoteServiceBaseUrl}search/album?q=artist:\"{artistName.ToLowerInvariant()}\", track:\"{songName.ToLowerInvariant()}\"");
+            var apiResult = await _httpClient.GetStringAsync($"{_remoteServiceBaseUrl}search/album?q=artist:\"{artistName.ToLowerInvariant()}\"");
             if (apiResult == null)
             {
                 return result;

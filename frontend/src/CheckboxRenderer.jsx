@@ -14,6 +14,7 @@ function CheckboxRenderer(props) {
     }
     localStorage.setItem("mylist", JSON.stringify(currentList));
     props.node.setDataValue(colId, checked);
+    props.callbackSelectedList(currentList);
   }
   return <input
     type="checkbox"

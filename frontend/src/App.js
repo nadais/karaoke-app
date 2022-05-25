@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { AgGridColumn, AgGridReact } from 'ag-grid-react';
+import { AgGridReact } from 'ag-grid-react';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter, useSearchParams } from 'react-router-dom';
 import CheckboxRenderer from './CheckboxRenderer';
@@ -7,18 +7,23 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 
 function Page() {
+    const [selectedList, setSelectedList] = useState([]);
+    const [songs, setSongs] = useState([]);
     const [searchParams, setSearchParams] = useSearchParams();
     const { t, i18n } = useTranslation();
-    <AgGridColumn field="name" headerName={translate("name")} sortable={true} filter={true} flex={4} minWidth={250} />
     const [columnDefs] = useState([
         {
             headerName: translate("mylist"),
             field: "selected",
             cellRenderer: "checkboxRenderer",
+            cellRendererParams:
+            {
+                callbackSelectedList: setSelectedList
+            },
             sort: 'desc',
             flex: 1
-        },  
-        { 
+        },
+        {
             field: "number",
             headerName: translate("number"),
             sortable: true,
@@ -26,7 +31,7 @@ function Page() {
             flex: 1,
             minWidth: 80
         },
-        { 
+        {
             field: "name",
             headerName: translate("name"),
             sortable: true,
@@ -34,7 +39,7 @@ function Page() {
             flex: 4,
             minWidth: 250
         },
-        { 
+        {
             field: "artist",
             headerName: translate("artist"),
             sortable: true,
@@ -43,12 +48,11 @@ function Page() {
             sort: 'asc',
             minWidth: 170
         }
-      ],
-)
+    ],
+    )
     const [rowData, setRowData] = useState([]);
     const [gridApi, setGridApi] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [songs, setSongs] = useState([]);
     const [catalogs, setCatalogs] = useState([]);
     const [categories, setCategories] = useState([]);
     const [genres, setGenres] = useState([]);
@@ -114,6 +118,30 @@ function Page() {
             </select>
         </span>
     }
+    function getMyList() {
+
+        let newList = songs.filter(x => x.selected === true);
+
+        if (newList.length > 0) {
+            return <div class="accordion accordion-flush">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                            {translate("mylist")}
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="accordion-body">
+                            <ul>
+                            {newList.map(song =>
+                            (<li key={song.key}> {song.number} - {song.artist} - {song.name}</li>))}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
     function getSearchBar() {
         if (rowData.length > 0) {
             return <div style={searchDivStyle}>
@@ -125,16 +153,15 @@ function Page() {
         setLoading(true);
         let genresResponse = await fetch(`https://karaoke-juliane.herokuapp.com/songs/genres?language=${language ?? ''}`);
         let result = await fetch('https://karaoke-juliane.herokuapp.com/songs');
-        var response =  await result.json();
+        var response = await result.json();
         var genres = await genresResponse.json();
         setGenres(genres);
         setLoading(false);
-        var listStorage = localStorage.getItem("mylist");
-        var currentList = JSON.parse(listStorage);
-        if(currentList == null)
-        {
+        var currentList = JSON.parse(localStorage.getItem("mylist"));
+        if (currentList == null) {
           currentList = [];
         }
+        setSelectedList(currentList);    
         let fullCatalog = response.songGroups;
         fullCatalog = fullCatalog.map(x => {
             x.selected = currentList.includes(x.id);
@@ -145,8 +172,7 @@ function Page() {
         let availableGenres = fullCatalog
             .flatMap(x => x.genres)
             .filter((v, i, a) => a.indexOf(v) === i && v != null)
-            .map(id =>
-                {
+            .map(id => {
                 var elem = genres.find(x => x.id === id);
                 return elem;
             })
@@ -200,8 +226,9 @@ function Page() {
     return (
         <div>
             <div class="row">
-                <div class="col-6 offset-md-4 offset-lg-4"><img class="header-image" src="header.png" alt="Karaoke night"/></div>
+                <div class="col-6 offset-md-4 offset-lg-4"><img class="header-image" src="header.png" alt="Karaoke night" /></div>
             </div>
+            {getMyList()}
             {getLanguages()}
             <div className="row">
                 <div className="col">
@@ -232,7 +259,7 @@ function Page() {
                     localeTextFunc={translate}
                     frameworkComponents={{
                         checkboxRenderer: CheckboxRenderer
-                      }}
+                    }}
                     onGridReady={onGridReady}>
                 </AgGridReact>
             </div>

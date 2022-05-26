@@ -7,10 +7,10 @@ function CheckboxRenderer(props) {
       currentList = [];
     }
     if (checked) {
-      currentList.push(props.node.data.id);
+      currentList.push(props.node.data.key);
     }
     else {
-      currentList = currentList.filter(x => x !== props.node.data.id);
+      currentList = currentList.filter(x => x !== props.node.data.key);
     }
     localStorage.setItem("mylist", JSON.stringify(currentList));
     props.node.setDataValue(colId, checked);

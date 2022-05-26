@@ -164,7 +164,7 @@ function Page() {
         setSelectedList(currentList);    
         let fullCatalog = response.songGroups;
         fullCatalog = fullCatalog.map(x => {
-            x.selected = currentList.includes(x.id);
+            x.selected = currentList.includes(x.key);
             return x;
         })
         let catalogs = fullCatalog.flatMap(x => x.catalogs).filter((v, i, a) => a.indexOf(v) === i && v != null);

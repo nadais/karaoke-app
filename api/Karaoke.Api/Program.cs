@@ -36,6 +36,9 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseCors(x => x.AllowAnyMethod()
+    .AllowAnyOrigin()
+    .AllowAnyHeader());
 app.UseHttpsRedirection();
 var mongoDbService = app.Services.GetRequiredService<MongoDbService>();
 await mongoDbService.AddCollectionsIfNotExistsAsync();

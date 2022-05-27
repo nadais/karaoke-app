@@ -9,6 +9,7 @@ import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 function Page() {
     const [selectedList, setSelectedList] = useState([]);
     const [songs, setSongs] = useState([]);
+    const [onlyMyList, setOnlyMyList] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
     const { t, i18n } = useTranslation();
     const [columnDefs] = useState([
@@ -20,7 +21,6 @@ function Page() {
             {
                 callbackSelectedList: setSelectedList
             },
-            sort: 'desc',
             flex: 1
         },
         {
@@ -118,29 +118,25 @@ function Page() {
             </select>
         </span>
     }
-    function getMyList() {
-
-        let newList = songs.filter(x => x.selected === true);
-
-        if (newList.length > 0) {
-            return <div class="accordion accordion-flush">
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingOne">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                            {translate("mylist")}
-                        </button>
-                    </h2>
-                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-                        <div class="accordion-body">
-                            <ul>
-                            {newList.map(song =>
-                            (<li key={song.key}> {song.number} - {song.artist} - {song.name}</li>))}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
+    function updateRowDataForMyList()
+    {
+        let newMyList = !onlyMyList;
+        setOnlyMyList(!onlyMyList);
+        let properties = getDefaultProperties();
+        properties.myList = newMyList;
+        setRowData(getRowData(properties));
+    }
+    function getMyListTrigger() {
+        return <button className='btn btn-primary' onClick={updateRowDataForMyList}>
+            {onlyMyList === true ?
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+                </svg> :
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-card-checklist" viewBox="0 0 16 16">
+                    <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z" />
+                    <path d="M7 5.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0zM7 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0z" />
+                </svg>}
+        </button>
     }
     function getSearchBar() {
         if (rowData.length > 0) {
@@ -159,9 +155,9 @@ function Page() {
         setLoading(false);
         var currentList = JSON.parse(localStorage.getItem("mylist"));
         if (currentList == null) {
-          currentList = [];
+            currentList = [];
         }
-        setSelectedList(currentList);    
+        setSelectedList(currentList);
         let fullCatalog = response.songGroups;
         fullCatalog = fullCatalog.map(x => {
             x.selected = currentList.includes(x.key);
@@ -184,13 +180,26 @@ function Page() {
         setRowData(fullCatalog);
     }
 
-    function getRowData(newCatalogName, newCategory, genre) {
-        let result = newCatalogName == null || newCatalogName === '' ? songs : songs.filter(x => x.catalogs.includes(newCatalogName));
-        if (newCategory != null && newCategory !== '') {
-            result = result.filter(x => x.categories.includes(newCategory));
+    const getDefaultProperties = () =>
+    {
+        return {
+            myList: onlyMyList,
+            catalog: catalogName,
+            category: category,
+            genre: currentGenre
+        };
+    }
+
+    function getRowData(properties) {
+        if (properties.myList) {
+            return songs.filter(x => selectedList.includes(x.key));
         }
-        if (genre != null && genre !== '') {
-            result = result.filter(x => x.genres.includes(genre));
+        let result = properties.catalog == null || properties.catalog === '' ? songs : songs.filter(x => x.catalogs.includes(properties.catalog));
+        if (properties.category != null && properties.category !== '') {
+            result = result.filter(x => x.categories.includes(properties.category));
+        }
+        if (properties.genre != null && properties.genre !== '') {
+            result = result.filter(x => x.genres.includes(properties.genre));
         }
         return result;
     }
@@ -198,12 +207,16 @@ function Page() {
     function onCategoryChanged(event) {
         let newCategory = event.target.value === '' ? undefined : event.target.value;
         setCategory(newCategory);
-        setRowData(getRowData(catalogName, newCategory, currentGenre));
+        let properties = getDefaultProperties();
+        properties.category = newCategory;
+        setRowData(getRowData(properties));
     }
     function onGenreChanged(event) {
         let newGenre = event.target.value === '' ? undefined : parseInt(event.target.value);
         setCurrentGenre(newGenre);
-        setRowData(getRowData(catalogName, category, newGenre));
+        let properties = getDefaultProperties();
+        properties.genre = newGenre;
+        setRowData(getRowData(properties));
     }
 
     function onLanguageChanged(event) {
@@ -217,7 +230,9 @@ function Page() {
     function onCatalogChanged(event) {
         let newCatalog = event.target.value === '' ? undefined : event.target.value;
         setCatalogName(newCatalog);
-        setRowData(getRowData(newCatalog, category, currentGenre));
+        let properties = getDefaultProperties();
+        properties.catalog = newCatalog;
+        setRowData(getRowData(properties));
     }
     function translate(key) {
         return t(key);
@@ -228,8 +243,8 @@ function Page() {
             <div class="row">
                 <div class="col-6 offset-md-4 offset-lg-4"><img class="header-image" src="header.png" alt="Karaoke night" /></div>
             </div>
-            {getMyList()}
             {getLanguages()}
+            {getMyListTrigger()}
             <div className="row">
                 <div className="col">
                     <select className="form-select" name='catalog' onChange={onCatalogChanged}>

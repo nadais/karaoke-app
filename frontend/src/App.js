@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { AgGridColumn, AgGridReact } from 'ag-grid-react';
+import { AgGridReact } from 'ag-grid-react';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter, useSearchParams } from 'react-router-dom';
 import CheckboxRenderer from './CheckboxRenderer';
@@ -7,18 +7,23 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css';
 
 function Page() {
+    const [selectedList, setSelectedList] = useState([]);
+    const [songs, setSongs] = useState([]);
+    const [onlyMyList, setOnlyMyList] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
     const { t, i18n } = useTranslation();
-    <AgGridColumn field="name" headerName={translate("name")} sortable={true} filter={true} flex={4} minWidth={250} />
     const [columnDefs] = useState([
         {
             headerName: translate("mylist"),
             field: "selected",
             cellRenderer: "checkboxRenderer",
-            sort: 'desc',
+            cellRendererParams:
+            {
+                callbackSelectedList: setSelectedList
+            },
             flex: 1
-        },  
-        { 
+        },
+        {
             field: "number",
             headerName: translate("number"),
             sortable: true,
@@ -26,7 +31,7 @@ function Page() {
             flex: 1,
             minWidth: 80
         },
-        { 
+        {
             field: "name",
             headerName: translate("name"),
             sortable: true,
@@ -34,7 +39,7 @@ function Page() {
             flex: 4,
             minWidth: 250
         },
-        { 
+        {
             field: "artist",
             headerName: translate("artist"),
             sortable: true,
@@ -43,12 +48,11 @@ function Page() {
             sort: 'asc',
             minWidth: 170
         }
-      ],
-)
+    ],
+    )
     const [rowData, setRowData] = useState([]);
     const [gridApi, setGridApi] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [songs, setSongs] = useState([]);
     const [catalogs, setCatalogs] = useState([]);
     const [categories, setCategories] = useState([]);
     const [genres, setGenres] = useState([]);
@@ -114,6 +118,26 @@ function Page() {
             </select>
         </span>
     }
+    function updateRowDataForMyList()
+    {
+        let newMyList = !onlyMyList;
+        setOnlyMyList(!onlyMyList);
+        let properties = getDefaultProperties();
+        properties.myList = newMyList;
+        setRowData(getRowData(properties));
+    }
+    function getMyListTrigger() {
+        return <button className='btn btn-primary' onClick={updateRowDataForMyList}>
+            {onlyMyList === true ?
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+                </svg> :
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-card-checklist" viewBox="0 0 16 16">
+                    <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z" />
+                    <path d="M7 5.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0zM7 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm-1.496-.854a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0z" />
+                </svg>}
+        </button>
+    }
     function getSearchBar() {
         if (rowData.length > 0) {
             return <div style={searchDivStyle}>
@@ -125,19 +149,18 @@ function Page() {
         setLoading(true);
         let genresResponse = await fetch(`https://karaoke-juliane.herokuapp.com/songs/genres?language=${language ?? ''}`);
         let result = await fetch('https://karaoke-juliane.herokuapp.com/songs');
-        var response =  await result.json();
+        var response = await result.json();
         var genres = await genresResponse.json();
         setGenres(genres);
         setLoading(false);
-        var listStorage = localStorage.getItem("mylist");
-        var currentList = JSON.parse(listStorage);
-        if(currentList == null)
-        {
-          currentList = [];
+        var currentList = JSON.parse(localStorage.getItem("mylist"));
+        if (currentList == null) {
+            currentList = [];
         }
+        setSelectedList(currentList);
         let fullCatalog = response.songGroups;
         fullCatalog = fullCatalog.map(x => {
-            x.selected = currentList.includes(x.id);
+            x.selected = currentList.includes(x.key);
             return x;
         })
         let catalogs = fullCatalog.flatMap(x => x.catalogs).filter((v, i, a) => a.indexOf(v) === i && v != null);
@@ -145,8 +168,7 @@ function Page() {
         let availableGenres = fullCatalog
             .flatMap(x => x.genres)
             .filter((v, i, a) => a.indexOf(v) === i && v != null)
-            .map(id =>
-                {
+            .map(id => {
                 var elem = genres.find(x => x.id === id);
                 return elem;
             })
@@ -158,13 +180,26 @@ function Page() {
         setRowData(fullCatalog);
     }
 
-    function getRowData(newCatalogName, newCategory, genre) {
-        let result = newCatalogName == null || newCatalogName === '' ? songs : songs.filter(x => x.catalogs.includes(newCatalogName));
-        if (newCategory != null && newCategory !== '') {
-            result = result.filter(x => x.categories.includes(newCategory));
+    const getDefaultProperties = () =>
+    {
+        return {
+            myList: onlyMyList,
+            catalog: catalogName,
+            category: category,
+            genre: currentGenre
+        };
+    }
+
+    function getRowData(properties) {
+        if (properties.myList) {
+            return songs.filter(x => selectedList.includes(x.key));
         }
-        if (genre != null && genre !== '') {
-            result = result.filter(x => x.genres.includes(genre));
+        let result = properties.catalog == null || properties.catalog === '' ? songs : songs.filter(x => x.catalogs.includes(properties.catalog));
+        if (properties.category != null && properties.category !== '') {
+            result = result.filter(x => x.categories.includes(properties.category));
+        }
+        if (properties.genre != null && properties.genre !== '') {
+            result = result.filter(x => x.genres.includes(properties.genre));
         }
         return result;
     }
@@ -172,12 +207,16 @@ function Page() {
     function onCategoryChanged(event) {
         let newCategory = event.target.value === '' ? undefined : event.target.value;
         setCategory(newCategory);
-        setRowData(getRowData(catalogName, newCategory, currentGenre));
+        let properties = getDefaultProperties();
+        properties.category = newCategory;
+        setRowData(getRowData(properties));
     }
     function onGenreChanged(event) {
         let newGenre = event.target.value === '' ? undefined : parseInt(event.target.value);
         setCurrentGenre(newGenre);
-        setRowData(getRowData(catalogName, category, newGenre));
+        let properties = getDefaultProperties();
+        properties.genre = newGenre;
+        setRowData(getRowData(properties));
     }
 
     function onLanguageChanged(event) {
@@ -191,7 +230,9 @@ function Page() {
     function onCatalogChanged(event) {
         let newCatalog = event.target.value === '' ? undefined : event.target.value;
         setCatalogName(newCatalog);
-        setRowData(getRowData(newCatalog, category, currentGenre));
+        let properties = getDefaultProperties();
+        properties.catalog = newCatalog;
+        setRowData(getRowData(properties));
     }
     function translate(key) {
         return t(key);
@@ -200,9 +241,10 @@ function Page() {
     return (
         <div>
             <div class="row">
-                <div class="col-6 offset-md-4 offset-lg-4"><img class="header-image" src="header.png" alt="Karaoke night"/></div>
+                <div class="col-6 offset-md-4 offset-lg-4"><img class="header-image" src="header.png" alt="Karaoke night" /></div>
             </div>
             {getLanguages()}
+            {getMyListTrigger()}
             <div className="row">
                 <div className="col">
                     <select className="form-select" name='catalog' onChange={onCatalogChanged}>
@@ -232,7 +274,7 @@ function Page() {
                     localeTextFunc={translate}
                     frameworkComponents={{
                         checkboxRenderer: CheckboxRenderer
-                      }}
+                    }}
                     onGridReady={onGridReady}>
                 </AgGridReact>
             </div>

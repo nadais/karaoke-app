@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - karaoke-wedding
+name: Build and deploy ASP.Net Core app to AWS Elastic Beanstalk
 defaults:
   run:
     working-directory: api
@@ -46,7 +46,7 @@ jobs:
           lfs: 'true'
       - 
         name: Build the Docker image
-        run: docker build -t nadais/karaoke-app -f api/Dockerfile .
+        run: docker build -t nadais/karaoke-app -f Dockerfile .
       -
         name: Generate Deployment Package
         run: zip -r deploy.zip *

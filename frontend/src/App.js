@@ -21,7 +21,8 @@ function Page() {
             {
                 callbackSelectedList: setSelectedList
             },
-            flex: 1
+            flex: 1,
+            minWidth: 80
         },
         {
             field: "number",
@@ -147,8 +148,8 @@ function Page() {
     }
     async function fetchSongsRemotely(language) {
         setLoading(true);
-        let genresResponse = await fetch(`https://karaoke-juliane.herokuapp.com/songs/genres?language=${language ?? ''}`);
-        let result = await fetch('https://karaoke-juliane.herokuapp.com/songs');
+        let genresResponse = await fetch(`https://karaoke-api.azurewebsites.net/songs/genres?language=${language ?? ''}`);
+        let result = await fetch('https://karaoke-api.azurewebsites.net/songs');
         var response = await result.json();
         var genres = await genresResponse.json();
         setGenres(genres);

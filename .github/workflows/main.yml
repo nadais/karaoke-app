@@ -9,7 +9,7 @@ on:
   push:
     branches:
       - main
-      - deploy_test
+      - deploy_test_azure
   workflow_dispatch:
 
 jobs:

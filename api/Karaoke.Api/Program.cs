@@ -48,8 +48,6 @@ app.UseHttpsRedirection();
 var mongoDbService = app.Services.GetRequiredService<MongoDbService>();
 await mongoDbService.AddCollectionsIfNotExistsAsync();
 
-app.UseCors(options => options.AllowAnyOrigin());
-
 app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();

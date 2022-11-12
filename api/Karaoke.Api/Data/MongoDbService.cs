@@ -1,9 +1,9 @@
-using Karaoke.Api.Settings;
+using Karaoke.Api.Features.Songs;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Karaoke.Api;
+namespace Karaoke.Api.Data;
 
 public class MongoDbService
 {
@@ -38,13 +38,6 @@ public class MongoDbService
         var db = GetDatabase();
         return db.GetCollection<Song>(
             _settings.SongsCollectionName);
-    }
-    
-    public IMongoCollection<User> GetUsersCollection()
-    {
-        var db = GetDatabase();
-        return db.GetCollection<User>(
-            _settings.UsersCollectionName);
     }
 
     private IMongoDatabase GetDatabase()

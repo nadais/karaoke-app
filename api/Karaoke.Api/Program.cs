@@ -1,6 +1,8 @@
-using Karaoke_catalog_server;
 using Karaoke.Api;
-using Karaoke.Api.Settings;
+using Karaoke.Api.Data;
+using Karaoke.Api.Features.Genres;
+using Karaoke.Api.Features.Songs;
+using Karaoke.Api.Features.Songs.Upload;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 
@@ -29,6 +31,7 @@ if(redisUrl != null)
 builder.Services.Configure<SongsCollectionSettings>(
     builder.Configuration.GetSection("SongsDatabase"));
 builder.Services.AddTransient(typeof(MongoDbService));
+builder.Services.AddTransient<ISongsDocumentParser, SongsDocumentParser>();
 builder.Services.AddHttpClient<DeezerClient>();
 var app = builder.Build();
 

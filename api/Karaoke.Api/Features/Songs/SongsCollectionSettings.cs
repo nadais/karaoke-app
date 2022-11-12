@@ -1,4 +1,4 @@
-namespace Karaoke.Api.Settings;
+namespace Karaoke.Api.Features.Songs;
 
 public record SongsCollectionSettings
 {
@@ -18,7 +18,6 @@ public record SongsCollectionSettings
     {
         var connectionString = ConnectionString.Replace("<username>", Username)
             .Replace("<password>", Password);
-        Console.WriteLine(connectionString);
         return connectionString;
     }
 }

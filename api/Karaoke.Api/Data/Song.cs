@@ -12,6 +12,7 @@ public class Song
     public string Name { get; set; }
     public int Number { get; set; }
 
+    public string GenreId { get; set; }
     public List<int>? Genres { get; set; }
     public List<string> Categories { get; set; }
 

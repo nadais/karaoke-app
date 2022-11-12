@@ -35,6 +35,7 @@ builder.Services.AddTransient(typeof(MongoDbService));
 builder.Services.AddTransient<ISongsDocumentParser, SongsDocumentParser>();
 builder.Services.AddHttpClient<DeezerClient>();
 builder.Services.AddMediatR(typeof(Program));
+builder.Services.AddCors();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

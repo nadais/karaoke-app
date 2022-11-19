@@ -77,7 +77,7 @@ function Page() {
         if (lang != null) {
             i18n.changeLanguage(lang);
         }
-        fetchSongsRemotely(lang);
+        fetchSongsRemotely();
     }, [i18n, searchParams]);
     function getLoading() {
         if (loading) {
@@ -146,10 +146,10 @@ function Page() {
             </div>
         }
     }
-    async function fetchSongsRemotely(language) {
+    async function fetchSongsRemotely() {
         setLoading(true);
-        let genresResponse = await fetch(`https://karaoke-api.azurewebsites.net/genres?language=${language ?? ''}`);
-        let result = await fetch('https://karaoke-api.azurewebsites.net/songs');
+        let genresResponse = await fetch(`https://karaoke-night.tk/genres.json`);
+        let result = await fetch('https://karaoke-night.tk/songs.json');
         var response = await result.json();
         var genres = await genresResponse.json();
         setGenres(genres);

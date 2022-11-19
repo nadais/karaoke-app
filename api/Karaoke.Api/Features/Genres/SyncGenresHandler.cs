@@ -18,7 +18,7 @@ public class SyncGenresHandler : IRequestHandler<SyncGenresRequest>
 
     public async Task<Unit> Handle(SyncGenresRequest request, CancellationToken cancellationToken)
     {
-        var artists = (await _songsCollection.FindAsync( x => x.Genres == null || x.Genres.Count == 0, cancellationToken: cancellationToken)).ToList()
+        var artists = (await _songsCollection.FindAsync( x => x.Genres == null || x.Genres.Count == 0, cancellationToken: cancellationToken)).ToList(cancellationToken: cancellationToken)
             .Select(x => x.Artist)
             .Distinct()
             .ToList();

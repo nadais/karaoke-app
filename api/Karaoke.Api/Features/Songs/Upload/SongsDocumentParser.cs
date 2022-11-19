@@ -1,10 +1,8 @@
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Karaoke.Api.Data;
 using OneOf;
-using Table = DocumentFormat.OpenXml.Drawing.Table;
-using TableCell = DocumentFormat.OpenXml.Drawing.TableCell;
-using TableRow = DocumentFormat.OpenXml.Drawing.TableRow;
 
 namespace Karaoke.Api.Features.Songs.Upload;
 
@@ -84,6 +82,7 @@ public class SongsDocumentParser : ISongsDocumentParser
         if (content.ContainsKey(song.Key))
         {
             content[song.Key].Categories.Add(categoryName);
+            return;
         }
 
         content.Add(song.Key, song);

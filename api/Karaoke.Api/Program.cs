@@ -35,19 +35,20 @@ builder.Services.AddTransient(typeof(MongoDbService));
 builder.Services.AddTransient<ISongsDocumentParser, SongsDocumentParser>();
 builder.Services.AddHttpClient<DeezerClient>();
 builder.Services.AddMediatR(typeof(Program));
+builder.Services.AddCors();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors(x => x.AllowAnyMethod()
-    .AllowAnyOrigin()
-    .AllowAnyHeader());
 app.UseHttpsRedirection();
 var mongoDbService = app.Services.GetRequiredService<MongoDbService>();
 await mongoDbService.AddCollectionsIfNotExistsAsync();
 
+app.UseCors(x => x.AllowAnyMethod()
+    .AllowAnyOrigin()
+    .AllowAnyHeader());
 app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();

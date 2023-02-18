@@ -4,7 +4,7 @@ using MongoDB.Driver;
 
 namespace Karaoke.Api.Features.Songs;
 
-public record ClearSongsRequest(string TagName) :IRequest<Unit>; 
+public record ClearSongsRequest(string TagName) :IRequest; 
 public class ClearSongsHandler : IRequestHandler<ClearSongsRequest>
 {
     private readonly IMongoCollection<Song> _songsCollection;
@@ -13,9 +13,8 @@ public class ClearSongsHandler : IRequestHandler<ClearSongsRequest>
     {
         _songsCollection = mongoDbService.GetSongsCollection();
     }
-    public async Task<Unit> Handle(ClearSongsRequest request, CancellationToken cancellationToken)
+    public async Task Handle(ClearSongsRequest request, CancellationToken cancellationToken)
     {
         await _songsCollection.DeleteManyAsync(x => x.Catalogs.Contains(request.TagName), cancellationToken: cancellationToken);
-        return Unit.Value;
     }
 }

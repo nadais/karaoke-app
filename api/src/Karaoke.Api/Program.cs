@@ -32,9 +32,10 @@ if(redisUrl != null)
 builder.Services.Configure<SongsCollectionSettings>(
     builder.Configuration.GetSection("SongsDatabase"));
 builder.Services.AddTransient(typeof(MongoDbService));
+builder.Services.AddTransient<IOpenXmlWrapper, OpenXmlWrapper>();
 builder.Services.AddTransient<ISongsDocumentParser, SongsDocumentParser>();
 builder.Services.AddHttpClient<DeezerClient>();
-builder.Services.AddMediatR(typeof(Program));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.AddCors();
 var app = builder.Build();
 
@@ -55,3 +56,4 @@ app.MapControllers();
 
 
 app.Run();
+public partial class Program { }

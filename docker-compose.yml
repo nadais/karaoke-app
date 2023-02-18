@@ -1,7 +1,10 @@
 version: "3.9"
 services:
   db:
-    container_name: db
     image: mongo
+    environment:
+      - MONGO_INITDB_DATABASE=test
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
     ports:
       - "27017:27017"

@@ -1,49 +1,38 @@
-﻿using System.Net;
-using System.Text.Json;
+﻿using System.Text.Json;
+using BoDi;
 using FluentAssertions;
+using Karaoke.Api.AcceptanceTests.Extensions;
 using Xunit;
 
 namespace Karaoke.Api.AcceptanceTests.Steps;
 
 [Binding]
-public sealed class UploadSongsStepDefinitions : IClassFixture<TestFixture>
+public sealed class UploadSongsStepDefinitions
 {
-    // For additional details on SpecFlow step definitions see https://go.specflow.org/doc-stepdef
-
     private readonly ScenarioContext _scenarioContext;
-    private readonly TestFixture _fixture;
-    private HttpResponseMessage _response;
+    private readonly HttpClient _client;
 
-    public UploadSongsStepDefinitions(ScenarioContext scenarioContext, TestFixture fixture)
+    public UploadSongsStepDefinitions(ScenarioContext scenarioContext, IObjectContainer container)
     {
-        _fixture = fixture;
+        _client = container.Resolve<HttpClient>(Hooks.Hooks.ClientName);
         _scenarioContext = scenarioContext;
     }
 
     [When("I send an upload catalog request")]
     public async Task WhenISendAnUploadCatalogRequest()
     {
-        var client = _fixture.GetClient();
         using var stream = await GetStreamAsync();
         MultipartFormDataContent fileContent = new();
         fileContent.Add(new StreamContent(stream), "file", "catalog.docx");
-        var result = await client.PutAsync("/songs/something", fileContent);
-        _scenarioContext["result"] = result;
-    }
-    
-    [Then("I should receive a successful response")]
-    public void ThenIShouldReceiveASuccessfulResponse()
-    {
-        _response = _scenarioContext["result"] as HttpResponseMessage;
-        _response.Should().NotBeNull();
-        _response!.StatusCode.Should().Be(HttpStatusCode.OK);
+        var response = await _client.PutAsync("/songs/something", fileContent);
+        _scenarioContext.SetResponse(response);
     }
     
     [Then("I should get a positive number of songs inserted")]
     public async Task ThenIShouldGetAPositiveNumberOfSongsInserted()
     {
-        var content = await _response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<int>(content);
+        var response = _scenarioContext.GetResponse();
+        var result = await response.ParseAs<int>();
         result.Should().BeGreaterThan(0);
     }
 

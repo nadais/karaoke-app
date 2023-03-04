@@ -34,10 +34,13 @@ public class SongsController : ControllerBase
     }
 
     [HttpDelete("{tagName}")]
-    public async Task ClearCache(string tagName)
+    public async Task<IActionResult> ClearCache(string tagName)
     {
         tagName = Uri.UnescapeDataString(tagName);
-        await _mediator.Send(new ClearSongsRequest(tagName));
+        var result = await _mediator.Send(new ClearSongsRequest(tagName));
+        return result.Match<IActionResult>(
+            success => NoContent(),
+            notFound => NotFound());
     }
 
     [HttpPut("{tagName}", Name = "UploadList")]

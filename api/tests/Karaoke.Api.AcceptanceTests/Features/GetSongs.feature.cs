@@ -19,7 +19,7 @@ namespace Karaoke.Api.AcceptanceTests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("TechTalk.SpecFlow", "3.9.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public partial class UploadSongsFeature : object, Xunit.IClassFixture<UploadSongsFeature.FixtureData>, System.IDisposable
+    public partial class GetSongsFeature : object, Xunit.IClassFixture<GetSongsFeature.FixtureData>, System.IDisposable
     {
         
         private static TechTalk.SpecFlow.ITestRunner testRunner;
@@ -28,10 +28,10 @@ namespace Karaoke.Api.AcceptanceTests.Features
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
-#line 1 "UploadSongs.feature"
+#line 1 "GetSongs.feature"
 #line hidden
         
-        public UploadSongsFeature(UploadSongsFeature.FixtureData fixtureData, Karaoke_Api_AcceptanceTests_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public GetSongsFeature(GetSongsFeature.FixtureData fixtureData, Karaoke_Api_AcceptanceTests_XUnitAssemblyFixture assemblyFixture, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
             this.TestInitialize();
@@ -40,7 +40,7 @@ namespace Karaoke.Api.AcceptanceTests.Features
         public static void FeatureSetup()
         {
             testRunner = TechTalk.SpecFlow.TestRunnerManager.GetTestRunner();
-            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "UploadSongs", "Upload songs from document to database", ProgrammingLanguage.CSharp, ((string[])(null)));
+            TechTalk.SpecFlow.FeatureInfo featureInfo = new TechTalk.SpecFlow.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "GetSongs", "\tGet songs from the catalog", ProgrammingLanguage.CSharp, ((string[])(null)));
             testRunner.OnFeatureStart(featureInfo);
         }
         
@@ -80,17 +80,17 @@ namespace Karaoke.Api.AcceptanceTests.Features
             this.TestTearDown();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Upload songs")]
-        [Xunit.TraitAttribute("FeatureTitle", "UploadSongs")]
-        [Xunit.TraitAttribute("Description", "Upload songs")]
-        [Xunit.TraitAttribute("Category", "uploadSongs")]
-        public virtual void UploadSongs()
+        [Xunit.SkippableFactAttribute(DisplayName="Get songs")]
+        [Xunit.TraitAttribute("FeatureTitle", "GetSongs")]
+        [Xunit.TraitAttribute("Description", "Get songs")]
+        [Xunit.TraitAttribute("Category", "getSongs")]
+        public virtual void GetSongs()
         {
             string[] tagsOfScenario = new string[] {
-                    "uploadSongs"};
+                    "getSongs"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Upload songs", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
-#line 6
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get songs", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 5
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             bool isScenarioIgnored = default(bool);
@@ -110,14 +110,70 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
-#line 7
- testRunner.When("I send an upload catalog request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+                TechTalk.SpecFlow.Table table2 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Number",
+                            "Artist",
+                            "Name"});
+                table2.AddRow(new string[] {
+                            "1",
+                            "Linkin Park",
+                            "Numb"});
+                table2.AddRow(new string[] {
+                            "2",
+                            "Linkin Park",
+                            "In the End"});
+#line 6
+ testRunner.Given("the following songs are loaded", ((string)(null)), table2, "Given ");
 #line hidden
-#line 8
+#line 10
+ testRunner.When("I send a get songs request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 11
  testRunner.Then("I should receive a 200 response", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-#line 9
- testRunner.And("I should get a positive number of songs inserted", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line 12
+ testRunner.And("I should have 2 songs in response", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+#line hidden
+            }
+            this.ScenarioCleanup();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Get songs with no data")]
+        [Xunit.TraitAttribute("FeatureTitle", "GetSongs")]
+        [Xunit.TraitAttribute("Description", "Get songs with no data")]
+        public virtual void GetSongsWithNoData()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Get songs with no data", null, tagsOfScenario, argumentsOfScenario, this._featureTags);
+#line 14
+ this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            bool isScenarioIgnored = default(bool);
+            bool isFeatureIgnored = default(bool);
+            if ((tagsOfScenario != null))
+            {
+                isScenarioIgnored = tagsOfScenario.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((this._featureTags != null))
+            {
+                isFeatureIgnored = this._featureTags.Where(__entry => __entry != null).Where(__entry => String.Equals(__entry, "ignore", StringComparison.CurrentCultureIgnoreCase)).Any();
+            }
+            if ((isScenarioIgnored || isFeatureIgnored))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                this.ScenarioStart();
+#line 15
+  testRunner.When("I send a get songs request", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 16
+  testRunner.Then("I should receive a 200 response", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 17
+  testRunner.And("I should have 0 songs in response", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
@@ -130,12 +186,12 @@ this.ScenarioInitialize(scenarioInfo);
             
             public FixtureData()
             {
-                UploadSongsFeature.FeatureSetup();
+                GetSongsFeature.FeatureSetup();
             }
             
             void System.IDisposable.Dispose()
             {
-                UploadSongsFeature.FeatureTearDown();
+                GetSongsFeature.FeatureTearDown();
             }
         }
     }

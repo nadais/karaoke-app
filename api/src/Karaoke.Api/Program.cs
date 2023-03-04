@@ -30,7 +30,7 @@ if(redisUrl != null)
     });
 }
 builder.Services.Configure<SongsCollectionSettings>(
-    builder.Configuration.GetSection("SongsDatabase"));
+    builder.Configuration.GetSection(SongsCollectionSettings.KeyName));
 builder.Services.AddTransient(typeof(MongoDbService));
 builder.Services.AddTransient<IOpenXmlWrapper, OpenXmlWrapper>();
 builder.Services.AddTransient<ISongsDocumentParser, SongsDocumentParser>();

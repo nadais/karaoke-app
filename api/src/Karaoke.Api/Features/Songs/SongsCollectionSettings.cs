@@ -2,6 +2,7 @@ namespace Karaoke.Api.Features.Songs;
 
 public record SongsCollectionSettings
 {
+    public const string KeyName = "SongsDatabase";
     public string ConnectionString { get; init; } = string.Empty;
 
     public string? DatabaseName { get; init; }

@@ -37,11 +37,12 @@ public class GetSongsStepDefinitions
         _scenarioContext.SetResponse(response);
     }
 
-    [Then(@"I should have (.*) songs in response")]
-    public async Task ThenIShouldHaveSongsInResponse(int songLength)
+    [Then(@"I should have (.*) songs in response for catalog '(.*)'")]
+    public async Task ThenIShouldHaveSongsInResponse(int songLength, string catalogName)
     {
         var response = _scenarioContext.GetResponse();
         var catalog = await response.ParseAs<Catalog>();
-        catalog.SongGroups.Count.Should().Be(songLength);
+        var songsInCatalog = catalog.SongGroups.Count(x => x.Catalogs.Contains(catalogName));
+        songsInCatalog.Should().Be(songLength);
     }
 }

@@ -11,7 +11,7 @@ Delete a catalog
         Then I should receive a 204 response
         When I send a get songs request
         Then I should receive a 200 response
-        And I should have 0 songs in response
+        And I should have 0 songs in response for catalog 'English'
 
     Scenario: Delete not existing catalog
         When I send a delete songs request for English catalog

@@ -141,7 +141,7 @@ namespace Karaoke.Api.AcceptanceTests.Features
         testRunner.Then("I should receive a 200 response", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
 #line 14
-        testRunner.And("I should have 0 songs in response", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+        testRunner.And("I should have 0 songs in response for catalog \'English\'", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();

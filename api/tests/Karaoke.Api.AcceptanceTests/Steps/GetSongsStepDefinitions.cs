@@ -38,7 +38,7 @@ public class GetSongsStepDefinitions
     }
 
     [Then(@"I should have (.*) songs in response for catalog '(.*)'")]
-    public async Task ThenIShouldHaveSongsInResponse(int songLength, string catalogName)
+    public async Task ThenIShouldHaveSongsInResponseForCatalog(int songLength, string catalogName)
     {
         var response = _scenarioContext.GetResponse();
         var catalog = await response.ParseAs<Catalog>();

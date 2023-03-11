@@ -14,6 +14,7 @@ public class Hooks
     public const string ClientName = "ApiClient";
     private static ICompositeService? _svc;
     private readonly IObjectContainer _objectContainer;
+    private static IMongoCollection<Song>? _songsCollection;
 
     public Hooks(IObjectContainer objectContainer)
     {
@@ -21,11 +22,16 @@ public class Hooks
     }
 
     [BeforeTestRun]
-    public static void SetupDocker()
+    public static void BeforeTestRun()
+    {
+        SetupDocker();
+        RegisterSongsCollection();
+    }
+
+    private static void SetupDocker()
     {
         var file = Path.Combine(Directory.GetCurrentDirectory(),
             (TemplateString)"docker-compose.yml");
-
         _svc = new Builder()
             .UseContainer()
             .UseCompose()
@@ -44,7 +50,7 @@ public class Hooks
     public async Task BeforeScenario()
     {
         SetupHttpClient();
-        RegisterSongsCollection();
+        _objectContainer.RegisterInstanceAs(_songsCollection);
         await PurgeSongsCollectionAsync();
     }
         
@@ -61,7 +67,7 @@ public class Hooks
         _objectContainer.RegisterInstanceAs(client, ClientName);
     }
 
-    private void RegisterSongsCollection()
+    private static void RegisterSongsCollection()
     {
         var config = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -70,16 +76,14 @@ public class Hooks
         var settings = new SongsCollectionSettings();
         config.Bind(SongsCollectionSettings.KeyName, settings);
         var db = GetDatabase(settings);
-        var songsCollection = db.GetCollection<Song>(
+        _songsCollection = db.GetCollection<Song>(
             settings.SongsCollectionName);
-        _objectContainer.RegisterInstanceAs(songsCollection);
     }
 
     private async Task PurgeSongsCollectionAsync()
     {
         var songsCollection = _objectContainer.Resolve<IMongoCollection<Song>>();
         await songsCollection.DeleteManyAsync(_ => true);
-            
     }
 
     private static IMongoDatabase GetDatabase(SongsCollectionSettings settings)

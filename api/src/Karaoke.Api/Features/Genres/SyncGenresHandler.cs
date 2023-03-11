@@ -4,7 +4,7 @@ using MongoDB.Driver;
 
 namespace Karaoke.Api.Features.Genres;
 
-public record SyncGenresRequest : IRequest<Unit>;
+public record SyncGenresRequest : IRequest;
 public class SyncGenresHandler : IRequestHandler<SyncGenresRequest>
 {
     private readonly DeezerClient _deezerClient;
@@ -16,7 +16,7 @@ public class SyncGenresHandler : IRequestHandler<SyncGenresRequest>
         _songsCollection = mongoDbService.GetSongsCollection();
     }
 
-    public async Task<Unit> Handle(SyncGenresRequest request, CancellationToken cancellationToken)
+    public async Task Handle(SyncGenresRequest request, CancellationToken cancellationToken)
     {
         var artists = (await _songsCollection.FindAsync( x => x.Genres == null || x.Genres.Count == 0, cancellationToken: cancellationToken)).ToList(cancellationToken: cancellationToken)
             .Select(x => x.Artist)
@@ -28,6 +28,5 @@ public class SyncGenresHandler : IRequestHandler<SyncGenresRequest>
             await _songsCollection.UpdateManyAsync(x => x.Artist == artist, 
                 Builders<Song>.Update.Set(x => x.Genres, result.ToList()), cancellationToken: cancellationToken);
         }
-        return Unit.Value;
     }
 }

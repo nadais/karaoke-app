@@ -4,7 +4,7 @@ using MongoDB.Driver;
 
 namespace Karaoke.Api.Features.Songs;
 
-public record MergeSongsRequest : IRequest<Unit>;
+public record MergeSongsRequest : IRequest;
 
 public class MergeSongsHandler : IRequestHandler<MergeSongsRequest>
 {
@@ -15,7 +15,7 @@ public class MergeSongsHandler : IRequestHandler<MergeSongsRequest>
         _songsCollection = mongoDbService.GetSongsCollection();
     }
 
-    public async Task<Unit> Handle(MergeSongsRequest request, CancellationToken cancellationToken)
+    public async Task Handle(MergeSongsRequest request, CancellationToken cancellationToken)
     {
         var result = _songsCollection.Aggregate()
             .Group(
@@ -49,8 +49,6 @@ public class MergeSongsHandler : IRequestHandler<MergeSongsRequest>
             await _songsCollection.DeleteManyAsync(x => idsToDelete.Contains(x.Id),
                 cancellationToken: cancellationToken);
         }
-        
-        return Unit.Value;
 
     }
 }
